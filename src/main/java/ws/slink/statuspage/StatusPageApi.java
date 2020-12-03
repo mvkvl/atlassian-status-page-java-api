@@ -3,7 +3,7 @@ package ws.slink.statuspage;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
 import kong.unirest.UnirestException;
-import ws.slink.statuspage.model.HttpMethod;
+import ws.slink.statuspage.type.HttpMethod;
 
 import java.time.Instant;
 import java.util.Map;
@@ -71,6 +71,7 @@ class StatusPageApi {
         return this.bridgeErrors.get();
     }
 
+    // http://kong.github.io/unirest-java/
     HttpResponse<? extends Object> apiCall(String path, HttpMethod method, Map<String, String> headers, Map<String, Object> queryParams, Object body) {
         if (rateLimitEnabled.get())
             delay(); // rate limit API usage

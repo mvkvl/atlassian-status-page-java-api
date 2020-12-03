@@ -1,4 +1,4 @@
-package ws.slink.statuspage.model;
+package ws.slink.statuspage.type;
 
 public enum HttpMethod {
 

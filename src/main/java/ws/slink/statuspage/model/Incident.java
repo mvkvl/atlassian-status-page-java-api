@@ -13,18 +13,31 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonPropertyOrder({"id", "name"})
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
-public class Group {
+public class Incident {
 
     private String id;
     private String name;
+    private String status;
+    private String impact;
+    private String created;
+    private String updated;
+    private String started;
+    private String resolved;
 
     @JsonProperty("page_id")
     private String pageId;
 
-    @JsonProperty("component")
-    private List<String> componentIds;
+
+    @JsonIgnore
+    private Page page;
+
+    @JsonIgnore
+    private List<Group> groups;
 
     @JsonIgnore
     private List<Component> components;
+
+    @JsonIgnore
+    private List<Incident> incidents;
 
 }
