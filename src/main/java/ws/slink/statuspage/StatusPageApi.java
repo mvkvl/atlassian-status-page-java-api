@@ -3,6 +3,7 @@ package ws.slink.statuspage;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
 import kong.unirest.UnirestException;
+import ws.slink.statuspage.error.ServiceCallException;
 import ws.slink.statuspage.type.HttpMethod;
 
 import java.time.Instant;
@@ -114,12 +115,9 @@ class StatusPageApi {
                 }
             }
         } catch (UnirestException e) {
-//            e.printStackTrace();
-            throw new RuntimeException("error requesting status page service: "
-                    + e.getClass().getSimpleName()
-                    + " - "
+            throw new ServiceCallException("error requesting status page service: "
                     + e.getMessage()
-            );
+            ).setCause(e);
         }
     }
 

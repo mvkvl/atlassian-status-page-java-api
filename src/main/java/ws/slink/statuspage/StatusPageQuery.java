@@ -46,7 +46,7 @@ class StatusPageQuery {
             HttpResponse<? extends Object> response = statusPageApi.apiCall(url, HttpMethod.GET, null, queryParams, null);
             if (response.getStatus() == HttpStatus.SC_OK) {
                 JsonNode node = (JsonNode) response.getBody();
-                ObjectMapper objectMapper = new ObjectMapper();
+                ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
                 JavaType type = objectMapper.getTypeFactory().constructCollectionType(List.class, clazz); // constructParametricType
                 return objectMapper.readValue(node.toString(), type);
             } else {
@@ -57,14 +57,16 @@ class StatusPageQuery {
         } catch (NoDataFoundException e) {
             throw e;
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
             if (statusPageApi.bridgeErrors()) {
-                throw new JsonParseException(e.getClass().getSimpleName() + " : " + e.getMessage());
+                throw new JsonParseException(e.getMessage()).setCause(e);
+            } else {
+                e.printStackTrace();
             }
         } catch (Exception e) {
-            e.printStackTrace();
             if (statusPageApi.bridgeErrors()) {
-                throw new ServiceCallException(e.getClass().getSimpleName() + " : " + e.getMessage());
+                throw new ServiceCallException(e.getMessage()).setCause(e);
+            } else {
+                e.printStackTrace();
             }
         }
         return Collections.emptyList();
@@ -78,7 +80,7 @@ class StatusPageQuery {
             HttpResponse<? extends Object> response = statusPageApi.apiCall(url, HttpMethod.GET, null, null, null);
             if (response.getStatus() == HttpStatus.SC_OK) {
                 JsonNode node = (JsonNode) response.getBody();
-                ObjectMapper objectMapper = new ObjectMapper();
+                ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
                 JavaType type = objectMapper.getTypeFactory().constructType(clazz); // constructParametricType
                 return Optional.ofNullable(objectMapper.readValue(node.toString(), type));
             } else {
@@ -89,14 +91,16 @@ class StatusPageQuery {
         } catch (NoDataFoundException e) {
             throw e;
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
             if (statusPageApi.bridgeErrors()) {
-                throw new JsonParseException(e.getClass().getSimpleName() + " : " + e.getMessage());
+                throw new JsonParseException(e.getMessage()).setCause(e);
+            } else {
+                e.printStackTrace();
             }
         } catch (Exception e) {
-            e.printStackTrace();
             if (statusPageApi.bridgeErrors()) {
-                throw new ServiceCallException(e.getClass().getSimpleName() + " : " + e.getMessage());
+                throw new ServiceCallException(e.getMessage()).setCause(e);
+            } else {
+                e.printStackTrace();
             }
         }
         return Optional.empty();
