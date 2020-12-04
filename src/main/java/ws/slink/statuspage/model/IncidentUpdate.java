@@ -7,8 +7,10 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.Accessors;
+import ws.slink.statuspage.type.IncidentStatus;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 @Data
@@ -21,7 +23,7 @@ public class IncidentUpdate {
 
     private String id;
 
-    private String status;
+    private IncidentStatus status;
 
     private String body;
 
@@ -35,5 +37,10 @@ public class IncidentUpdate {
 
     @JsonProperty("affected_components")
     private List<ComponentUpdate> affectedComponents;
-
+    public List<ComponentUpdate> affectedComponents() {
+        if (null == affectedComponents)
+            return Collections.emptyList();
+        else
+            return affectedComponents;
+    }
 }

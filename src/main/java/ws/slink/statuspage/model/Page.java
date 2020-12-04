@@ -30,7 +30,6 @@ public class Page {
     private List<Component> components = Collections.emptyList();;
     @JsonIgnore
     private List<Incident> incidents;
-
     public List<Component> allComponents() {
         return Stream.concat(components.stream(), groups.stream().flatMap(v -> v.components().stream())).collect(Collectors.toList());
     }

@@ -4,8 +4,11 @@ import com.fasterxml.jackson.annotation.*;
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.Accessors;
+import ws.slink.statuspage.type.IncidentSeverity;
+import ws.slink.statuspage.type.IncidentStatus;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 @Data
@@ -18,8 +21,10 @@ public class Incident {
 
     private String id;
     private String name;
-    private String status;
-    private String impact;
+
+    private IncidentStatus status;
+
+    private IncidentSeverity impact;
 
     @JsonProperty("created_at")
     private LocalDateTime createdAt;
@@ -48,12 +53,25 @@ public class Incident {
     @JsonIgnore
     private Page page;
 
-    @JsonIgnore
-    private List<Group> groups;
+//    @JsonIgnore
+//    private List<Group> groups;
 
     private List<Component> components;
+    public List<Component> components() {
+        if (null == components)
+            return Collections.emptyList();
+        else
+            return components;
+    }
 
     @JsonProperty("incident_updates")
     private List<IncidentUpdate> updates;
+    public List<IncidentUpdate> updates() {
+        if (null == updates) {
+            return Collections.emptyList();
+        } else {
+            return updates;
+        }
+    }
 
 }

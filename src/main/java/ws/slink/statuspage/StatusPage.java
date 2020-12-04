@@ -221,13 +221,11 @@ public class StatusPage {
     // TOOLS
     private void syncPage(@NonNull Page page) {
         List<Group> groups = groups(page);
-        List<Component> components = components(page);
-        List<Incident> incidents = incidents(page, Integer.MAX_VALUE, 1);
         groups.forEach(this::syncGroup);
         page
             .groups(groups)
-            .components(components.stream().filter(c -> !c.group() && (null == c.groupId() || c.groupId().isEmpty())).collect(Collectors.toList()))
-            .incidents(incidents)
+            .components(components(page).stream().filter(c -> !c.group() && (null == c.groupId() || c.groupId().isEmpty())).collect(Collectors.toList()))
+            .incidents(incidents(page, Integer.MAX_VALUE, 1))
         ;
     }
     private void syncGroup(@NonNull Group group) {

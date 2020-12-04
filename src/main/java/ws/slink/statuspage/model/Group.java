@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 
+import java.util.Collections;
 import java.util.List;
 
 @Data
@@ -27,4 +28,11 @@ public class Group {
     @JsonIgnore
     private List<Component> components;
 
+    public List<Component> components() {
+        if (null == components) {
+            return Collections.emptyList();
+        } else {
+            return components;
+        }
+    }
 }
