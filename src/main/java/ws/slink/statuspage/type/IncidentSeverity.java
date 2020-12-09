@@ -5,10 +5,11 @@ import ws.slink.statuspage.type.converter.IncidentSeverityDeserializer;
 
 @JsonDeserialize(using = IncidentSeverityDeserializer.class)
 public enum IncidentSeverity {
-    NONE("none"),
-    MINOR("minor"),
-    MAJOR("major"),
-    CRITICAL("critical")
+     NONE("none")
+    ,MINOR("minor")
+    ,MAJOR("major")
+    ,CRITICAL("critical")
+    ,MAINTENANCE("maintenance")
     ;
 
     private String value;

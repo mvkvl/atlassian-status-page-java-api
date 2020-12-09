@@ -5,10 +5,15 @@ import ws.slink.statuspage.type.converter.IncidentStatusDeserializer;
 
 @JsonDeserialize(using = IncidentStatusDeserializer.class)
 public enum IncidentStatus {
-    INVESTIGATING("investigating"),
-    IDENTIFIED("identified"),
-    MONITORING("monitoring"),
-    RESOLVED("resolved")
+     INVESTIGATING("investigating")
+    ,IDENTIFIED("identified")
+    ,MONITORING("monitoring")
+    ,RESOLVED("resolved")
+
+    ,SCHEDULED("scheduled")
+    ,IN_PROGRESS("in_progress")
+    ,VERIFYING("verifying")
+    ,COMPLETED("completed")
     ;
 
     private String value;

@@ -10,6 +10,7 @@ import ws.slink.statuspage.type.IncidentStatus;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Accessors(fluent = true)
@@ -52,6 +53,8 @@ public class Incident {
 
     @JsonIgnore
     private Page page;
+
+    private Map<String, Object> metadata;
 
 //    @JsonIgnore
 //    private List<Group> groups;
