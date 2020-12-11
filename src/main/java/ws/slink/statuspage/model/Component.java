@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.Accessors;
+import ws.slink.statuspage.type.ComponentStatus;
 
 @Data
 @Accessors(fluent = true)
@@ -26,7 +27,14 @@ public class Component {
     @JsonProperty("group_id")
     private String groupId;
 
-    private String status;
+    private String description;
+
+    @JsonProperty("only_show_if_degraded")
+    private boolean onlyShowIfDegraded;
+
+    private boolean showcase;
+
+    private ComponentStatus status;
 
     private boolean group;
 

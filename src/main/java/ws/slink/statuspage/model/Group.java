@@ -22,6 +22,8 @@ public class Group {
     @JsonProperty("page_id")
     private String pageId;
 
+    private String description;
+
     @JsonProperty("component")
     private List<String> componentIds;
 

@@ -1,9 +1,9 @@
-package ws.slink.test.statuspage.api;
+package tmp;
 
 import org.junit.ClassRule;
 import org.junit.Test;
 import ws.slink.statuspage.model.Page;
-import ws.slink.test.statuspage.StatusPageTestResource;
+import ws.slink.test.statuspage.config.StatusPageTestResource;
 
 import java.util.stream.Collectors;
 
@@ -14,7 +14,7 @@ public class TestSync {
 
     @Test public void testSyncA() {
         resource.run(() -> {
-            resource.getStatusPage().sync().stream().forEach(page -> {
+            resource.statusPage().sync().stream().forEach(page -> {
                 System.out.println("page " + page.name() + " [" + page.id() + "]");
                 page.groups().stream().forEach(group -> {
                     System.out.println(" > group: " + group.name() + " [" + group.id() + "]");
@@ -46,11 +46,11 @@ public class TestSync {
 
     @Test public void testSyncB() {
         resource.run(() -> {
-            Page page = resource.getStatusPage().pages().get(0);
+            Page page = resource.statusPage().pages().get(0);
             System.out.println(page);
-            System.out.println(resource.getStatusPage().sync(page));
-            resource.getStatusPage().sync(page.id()).ifPresent(System.out::println);
-            resource.getStatusPage().sync("stub").ifPresent(System.out::println);
+            System.out.println(resource.statusPage().sync(page));
+            resource.statusPage().sync(page.id()).ifPresent(System.out::println);
+            resource.statusPage().sync("stub").ifPresent(System.out::println);
         });
     }
 

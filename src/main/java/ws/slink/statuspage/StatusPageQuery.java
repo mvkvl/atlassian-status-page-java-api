@@ -76,20 +76,45 @@ class StatusPageQuery {
         return get(url, "");
     }
     <T> Optional<T> get(String url, String notFoundMessage) {
+        return performRequest(url, HttpMethod.GET, Arrays.asList(HttpStatus.SC_OK), notFoundMessage, null);
+    }
+
+    <T> Optional<T> post(String url, String jsonBody) {
+        return post(url, "", jsonBody);
+    }
+    <T> Optional<T> post(String url, String errorMessage, String jsonBody) {
+        return performRequest(url, HttpMethod.POST, Arrays.asList(HttpStatus.SC_CREATED), errorMessage, jsonBody);
+    }
+
+    <T> Optional<T> put(String url, String jsonBody) {
+        return put(url, "", jsonBody);
+    }
+    <T> Optional<T> put(String url, String errorMessage, String jsonBody) {
+        return performRequest(url, HttpMethod.PUT, Arrays.asList(HttpStatus.SC_OK), errorMessage, jsonBody);
+    }
+
+    <T> Optional<T> delete(String url) {
+        return delete(url, "");
+    }
+    <T> Optional<T> delete(String url, String errorMessage) {
+        return performRequest(url, HttpMethod.DELETE, Arrays.asList(HttpStatus.SC_NO_CONTENT, HttpStatus.SC_OK), errorMessage, null);
+    }
+
+    private <T> Optional<T> performRequest(String url, HttpMethod method, List<Integer> okResultCodes, String errorMessage, String jsonBody) {
         try {
-            HttpResponse<? extends Object> response = statusPageApi.apiCall(url, HttpMethod.GET, null, null, null);
-            if (response.getStatus() == HttpStatus.SC_OK) {
+            Map<String, String> headers = new HashMap<>();
+            headers.put("Content-Type", "application/json");
+            HttpResponse<? extends Object> response = statusPageApi.apiCall(url, method, headers, null, jsonBody);
+            if (okResultCodes.contains(response.getStatus())) {
                 JsonNode node = (JsonNode) response.getBody();
                 ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
                 JavaType type = objectMapper.getTypeFactory().constructType(clazz); // constructParametricType
                 return Optional.ofNullable(objectMapper.readValue(node.toString(), type));
             } else {
                 if (statusPageApi.bridgeErrors()) {
-                    throw new NoDataFoundException(notFoundMessage);
+                    throw new RuntimeException(errorMessage + ": service answered " + response.getStatus() + " (" + response.getStatusText() + ")");
                 }
             }
-        } catch (NoDataFoundException e) {
-            throw e;
         } catch (JsonProcessingException e) {
             if (statusPageApi.bridgeErrors()) {
                 throw new JsonParseException(e.getMessage()).setCause(e);
@@ -122,3 +147,97 @@ class StatusPageQuery {
 //                        .map(v -> (T)v)
 //                        .collect(Collectors.toList())
 //                        ;=
+
+
+        /*
+        try {
+            Map<String, String> headers = new HashMap<>();
+            headers.put("Content-Type", "application/json");
+            HttpResponse<? extends Object> response = statusPageApi.apiCall(url, HttpMethod.PUT, headers, null, jsonBody);
+            if (response.getStatus() == HttpStatus.SC_OK) {
+                JsonNode node = (JsonNode) response.getBody();
+                ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+                JavaType type = objectMapper.getTypeFactory().constructType(clazz); // constructParametricType
+                return Optional.ofNullable(objectMapper.readValue(node.toString(), type));
+            } else {
+                if (statusPageApi.bridgeErrors()) {
+                    throw new RuntimeException("could not update object - service answered " + response.getStatus());
+                }
+            }
+        } catch (JsonProcessingException e) {
+            if (statusPageApi.bridgeErrors()) {
+                throw new JsonParseException(e.getMessage()).setCause(e);
+            } else {
+                e.printStackTrace();
+            }
+        } catch (Exception e) {
+            if (statusPageApi.bridgeErrors()) {
+                throw new ServiceCallException(e.getMessage()).setCause(e);
+            } else {
+                e.printStackTrace();
+            }
+        }
+        return Optional.empty();
+        */
+
+        /*
+        try {
+            Map<String, String> headers = new HashMap<>();
+            headers.put("Content-Type", "application/json");
+            HttpResponse<? extends Object> response = statusPageApi.apiCall(url, HttpMethod.POST, headers, null, jsonBody);
+            if (response.getStatus() == HttpStatus.SC_CREATED) {
+                JsonNode node = (JsonNode) response.getBody();
+                ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+                JavaType type = objectMapper.getTypeFactory().constructType(clazz); // constructParametricType
+                return Optional.ofNullable(objectMapper.readValue(node.toString(), type));
+            } else {
+                if (statusPageApi.bridgeErrors()) {
+                    throw new RuntimeException(errorOccurredMessage + ": service answered " + response.getStatus());
+                }
+            }
+        } catch (JsonProcessingException e) {
+            if (statusPageApi.bridgeErrors()) {
+                throw new JsonParseException(e.getMessage()).setCause(e);
+            } else {
+                e.printStackTrace();
+            }
+        } catch (Exception e) {
+            if (statusPageApi.bridgeErrors()) {
+                throw new ServiceCallException(e.getMessage()).setCause(e);
+            } else {
+                e.printStackTrace();
+            }
+        }
+        return Optional.empty();
+        */
+
+        /*
+        try {
+            HttpResponse<? extends Object> response = statusPageApi.apiCall(url, HttpMethod.GET, null, null, null);
+            if (response.getStatus() == HttpStatus.SC_OK) {
+                JsonNode node = (JsonNode) response.getBody();
+                ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+                JavaType type = objectMapper.getTypeFactory().constructType(clazz); // constructParametricType
+                return Optional.ofNullable(objectMapper.readValue(node.toString(), type));
+            } else {
+                if (statusPageApi.bridgeErrors()) {
+                    throw new NoDataFoundException(notFoundMessage);
+                }
+            }
+        } catch (NoDataFoundException e) {
+            throw e;
+        } catch (JsonProcessingException e) {
+            if (statusPageApi.bridgeErrors()) {
+                throw new JsonParseException(e.getMessage()).setCause(e);
+            } else {
+                e.printStackTrace();
+            }
+        } catch (Exception e) {
+            if (statusPageApi.bridgeErrors()) {
+                throw new ServiceCallException(e.getMessage()).setCause(e);
+            } else {
+                e.printStackTrace();
+            }
+        }
+        return Optional.empty();
+        */

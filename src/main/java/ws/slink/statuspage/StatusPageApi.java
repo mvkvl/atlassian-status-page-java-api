@@ -110,6 +110,14 @@ class StatusPageApi {
                         .body(body)
                         .asJson();
                 }
+                case DELETE: {
+                    return Unirest
+                        .delete(generateApiUrl(path))
+                        .headers(headers)
+                        .header(authHeaderKey(), authHeaderValue())
+                        .body(body)
+                        .asJson();
+                }
                 default: {
                     throw new IllegalArgumentException("unsupported method requested: " + method);
                 }

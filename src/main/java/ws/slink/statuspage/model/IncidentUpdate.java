@@ -10,6 +10,7 @@ import lombok.experimental.Accessors;
 import ws.slink.statuspage.type.IncidentStatus;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -36,7 +37,7 @@ public class IncidentUpdate {
     private LocalDateTime updatedAt;
 
     @JsonProperty("affected_components")
-    private List<ComponentUpdate> affectedComponents;
+    private List<ComponentUpdate> affectedComponents = new ArrayList<>();
     public List<ComponentUpdate> affectedComponents() {
         if (null == affectedComponents)
             return Collections.emptyList();

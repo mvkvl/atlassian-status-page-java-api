@@ -8,9 +8,7 @@ import ws.slink.statuspage.type.IncidentSeverity;
 import ws.slink.statuspage.type.IncidentStatus;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Data
 @Accessors(fluent = true)
@@ -54,12 +52,12 @@ public class Incident {
     @JsonIgnore
     private Page page;
 
-    private Map<String, Object> metadata;
+    private Map<String, Object> metadata = new HashMap<>();
 
 //    @JsonIgnore
 //    private List<Group> groups;
 
-    private List<Component> components;
+    private List<Component> components = new ArrayList<>();
     public List<Component> components() {
         if (null == components)
             return Collections.emptyList();
@@ -68,7 +66,7 @@ public class Incident {
     }
 
     @JsonProperty("incident_updates")
-    private List<IncidentUpdate> updates;
+    private List<IncidentUpdate> updates = new ArrayList<>();
     public List<IncidentUpdate> updates() {
         if (null == updates) {
             return Collections.emptyList();
