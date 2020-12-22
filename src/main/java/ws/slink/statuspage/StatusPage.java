@@ -250,20 +250,23 @@ public class StatusPage {
 
     // CREATE OBJECTS
     public Optional<Incident> createIncident(String pageId, String title, String body) {
-        return createIncident(pageId, title, body, IncidentStatus.INVESTIGATING, IncidentSeverity.NONE, null);
+        return createIncident(pageId, title, body, IncidentStatus.INVESTIGATING, IncidentSeverity.NONE, null, null);
     }
     public Optional<Incident> createIncident(String pageId, String title, String body, IncidentSeverity severity) {
-        return createIncident(pageId, title, body, IncidentStatus.INVESTIGATING, severity, null);
+        return createIncident(pageId, title, body, IncidentStatus.INVESTIGATING, severity, null, null);
     }
     public Optional<Incident> createIncident(String pageId, String title, String body, IncidentSeverity severity, Map<String, Object> meta) {
-        return createIncident(pageId, title, body, IncidentStatus.INVESTIGATING, severity, meta);
+        return createIncident(pageId, title, body, IncidentStatus.INVESTIGATING, severity, meta, null);
     }
-    public Optional<Incident> createIncident(String pageId, String title, String body, IncidentStatus status, IncidentSeverity severity, Map<String, Object> meta) {
+    public Optional<Incident> createIncident(String pageId, String title, String body, IncidentSeverity severity, Map<String, Object> meta, List<Component> components) {
+        return createIncident(pageId, title, body, IncidentStatus.INVESTIGATING, severity, meta, components);
+    }
+    public Optional<Incident> createIncident(String pageId, String title, String body, IncidentStatus status, IncidentSeverity severity, Map<String, Object> meta, List<Component> components) {
         Optional<Incident> createdIncident = new StatusPageQuery(statusPageApi, Incident.class)
             .post(
                 "pages/" + pageId + "/incidents",
                 "could not create incident for page #" + pageId,
-                incidentRequestJson(null, title, body, pageId, status, severity, meta)
+                incidentRequestJson(null, title, body, pageId, status, severity, meta, components)
             );
 //        if (full)
 //            component.ifPresent(this::syncIncident);
@@ -298,6 +301,9 @@ public class StatusPage {
     }
     public Optional<Component> createComponent(String pageId, String title, String description) {
         return createComponent(pageId, null, title, description, null, null, null);
+    }
+    public Optional<Component> createComponent(String pageId, String title, String description, boolean showcase) {
+        return createComponent(pageId, null, title, description, null, null, showcase);
     }
     public Optional<Component> createComponent(String pageId, String title, String description, ComponentStatus status) {
         return createComponent(pageId, null, title, description, status, null, null);
@@ -463,9 +469,9 @@ public class StatusPage {
             incident.pageId(),
             incident.status(),
             incident.impact(),
-            incident.metadata()
+            incident.metadata(),
+            incident.components()
         );
-
         /*
         JSONObject json = new JSONObject();
 
@@ -512,7 +518,8 @@ public class StatusPage {
         String pageId,
         IncidentStatus status,
         IncidentSeverity severity,
-        Map<String, Object> meta
+        Map<String, Object> meta,
+        List<Component> components
     ) {
         JSONObject json = new JSONObject();
 
@@ -539,11 +546,10 @@ public class StatusPage {
         if (null != meta && !meta.isEmpty())
             json.put("metadata", meta);
 
-
-
-
-
-
+        if (null != components && !components.isEmpty()) {
+            json.put("component_ids", components.stream().map(Component::id).collect(Collectors.toList()));
+            json.put("components", components.stream().collect(Collectors.toMap(Component::id, c -> c.status().value())));
+        }
 
         json.put("deliver_notifications", true);
 
