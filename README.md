@@ -74,7 +74,7 @@ Next you can use created object in straightforward manner:
   
 - get page components: 
     ```java
-    List<Component> components = statusPage.component(page);
+    List<Component> components = statusPage.components(page);
     ```
 
 - get one component:
