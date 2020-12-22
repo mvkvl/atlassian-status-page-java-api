@@ -13,6 +13,7 @@
     <name>atlassian-status-page-java-api</name>
     <description>Java wrapper for Atlassian Statuspage REST API</description>
     <packaging>jar</packaging>
+    <url>http://github.com/mvkvl/atlassian-status-page-java-api</url>
 
     <licenses>
         <license>
