@@ -69,7 +69,7 @@ Next you can use created object in straightforward manner:
 
 - get all the pages: 
     ```java
-    Page page = statusPage.pages();
+    List<Page> page = statusPage.pages();
     ```
   
 - get page components: 
