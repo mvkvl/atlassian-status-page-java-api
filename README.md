@@ -1,5 +1,7 @@
 # Atlassian Statuspage Java API
 
+[![Maven Central](https://img.shields.io/maven-central/v/ws.slink/atlassian-status-page-java-api.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22ws.slink%22%20AND%20a:%22atlassian-status-page-java-api%22)
+
 ## General description 
 
 This library implements a subset of Atlassian Statuspage REST API to simplify its usage from Java applications. 
