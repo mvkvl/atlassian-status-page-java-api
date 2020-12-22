@@ -5,14 +5,36 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>ws.slink</groupId>
     <artifactId>atlassian-status-page-java-api</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.1</version>
     <organization>
         <name>slink.ws</name>
         <url>https://github.com/mvkvl</url>
     </organization>
     <name>atlassian-status-page-java-api</name>
-    <description></description>
+    <description>Java wrapper for Atlassian Statuspage REST API</description>
     <packaging>jar</packaging>
+
+    <licenses>
+        <license>
+            <name>The Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Mikhail Kantur</name>
+            <email>kami@slink.ws</email>
+            <organization>ws.slink</organization>
+            <organizationUrl>http://github.com/mvkvl</organizationUrl>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/mvkvl/atlassian-status-page-java-api.git</connection>
+        <developerConnection>scm:git:ssh://github.com:mvkvl/atlassian-status-page-java-api.git</developerConnection>
+        <url>http://github.com/mvkvl/atlassian-status-page-java-api/tree/master</url>
+    </scm>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
@@ -77,6 +99,19 @@
         </dependency> <!-- commons-lang3 -->
     </dependencies>
 
+    <distributionManagement>
+        <snapshotRepository>
+            <id>sonatype-nexus-snapshots</id>
+            <name>Sonatype Nexus Snapshots</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>sonatype-nexus-staging</id>
+            <name>Nexus Release Repository</name>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+        </repository>
+    </distributionManagement>
+
     <build>
         <plugins>
             <plugin>
@@ -86,6 +121,46 @@
                     <source>11</source>
                     <target>11</target>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-source</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Sign artifacts for uploading to maven central -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.6</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
