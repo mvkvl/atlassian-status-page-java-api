@@ -2,7 +2,7 @@
 
 ## General description 
 
-This library implements a subset of Atlassian StatusPage REST API to simplify its usage from Java applications. 
+This library implements a subset of Atlassian Statuspage REST API to simplify its usage from Java applications. 
 
 The simplest way to use this library is to include it as a dependency into your project like this:
 ```maven
@@ -39,7 +39,7 @@ This library supports following funcitonality:
     - Group
     - Incident
 
-The library can simply be extended to add support for additional StatusPage REST API methods.
+The library can simply be extended to add support for additional Statuspage REST API methods.
 
 ## Usage
 > Full usage examples you can find in `test` directory of this project.
