@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>ws.slink</groupId>
     <artifactId>atlassian-status-page-java-api</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
     <organization>
         <name>slink.ws</name>
         <url>https://github.com/mvkvl</url>
@@ -68,11 +68,6 @@
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency> <!-- jackson-datatype-jsr310 -->
-        <dependency>
-            <groupId>com.konghq</groupId>
-            <artifactId>unirest-java</artifactId>
-            <version>3.11.05</version>
-        </dependency> <!-- unirest-java -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>

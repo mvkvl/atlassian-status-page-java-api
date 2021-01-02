@@ -94,7 +94,7 @@ public class IncidentTest {
         assertEquals(0, page.incidents().size());
     }
 
-    @Ignore
+//    @Ignore
     @Test public void testUpdateIncidentWithComponents() {
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
 
@@ -188,7 +188,7 @@ public class IncidentTest {
         assertEmpty(page.incidents());
     }
 
-    @Ignore
+//    @Ignore
     @Test public void testIncidentLifecycleWithComponents() {
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
 

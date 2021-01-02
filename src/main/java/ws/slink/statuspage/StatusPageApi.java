@@ -1,15 +1,19 @@
 package ws.slink.statuspage;
 
-import kong.unirest.HttpResponse;
-import kong.unirest.Unirest;
-import kong.unirest.UnirestException;
 import ws.slink.statuspage.error.ServiceCallException;
 import ws.slink.statuspage.type.HttpMethod;
+import ws.slink.statuspage.type.HttpStatus;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 class StatusPageApi {
 
@@ -29,18 +33,23 @@ class StatusPageApi {
     private String baseUrl = "https://api.statuspage.io/v1/";
     private final AtomicLong callTimestamp = new AtomicLong(0);
 
+    private HttpClient httpClient;
+
     public StatusPageApi(String apiToken) {
         this.apiToken = apiToken;
+        init();
     }
     public StatusPageApi(String apiToken, String baseUrl) {
         this.apiToken = apiToken;
         this.baseUrl  = baseUrl;
+        init();
     }
     public StatusPageApi(String apiToken, String baseUrl, long rateLimit) {
         this.apiToken = apiToken;
         this.baseUrl  = baseUrl;
         this.rateLimit(true);
         this.rateLimitDelay(rateLimit);
+        init();
     }
     public StatusPageApi(String apiToken, String baseUrl, long rateLimit, boolean bridgeErrors) {
         this.apiToken = apiToken;
@@ -48,6 +57,17 @@ class StatusPageApi {
         this.rateLimit(true);
         this.rateLimitDelay(rateLimit);
         this.bridgeErrors(bridgeErrors);
+        init();
+    }
+
+    private void init() {
+        httpClient = HttpClient
+            .newBuilder()
+            .version(HttpClient.Version.HTTP_1_1)
+            .connectTimeout(Duration.ofSeconds(10))
+            .followRedirects(HttpClient.Redirect.NORMAL)
+            .build()
+        ;
     }
 
     public StatusPageApi rateLimit(boolean value) {
@@ -72,59 +92,76 @@ class StatusPageApi {
         return this.bridgeErrors.get();
     }
 
-    // http://kong.github.io/unirest-java/
-    HttpResponse<? extends Object> apiCall(String path, HttpMethod method, Map<String, String> headers, Map<String, Object> queryParams, Object body) {
+    HttpResponse<String> apiCall(String path, HttpMethod method, Map<String, String> headers, Map<String, Object> queryParams, Object body) {
         if (rateLimitEnabled.get())
             delay(); // rate limit API usage
+
         try {
+            final HttpRequest.Builder requestBuilder;
             switch(method) {
                 case GET: {
-                    return Unirest
-                        .get(generateApiUrl(path))
-                        .headers(headers)
+                    requestBuilder = HttpRequest.newBuilder()
+                        .GET()
                         .header(authHeaderKey(), authHeaderValue())
-                        .queryString(queryParams)
-                        .asJson();
+                        .uri(URI.create(generateApiUrl(path) + formatQueryParams(queryParams)))
+                    ;
+                    break;
                 }
                 case POST: {
-                    return Unirest
-                        .post(generateApiUrl(path))
-                        .headers(headers)
+                    requestBuilder = HttpRequest.newBuilder()
+                        .method("POST", HttpRequest.BodyPublishers.ofString(body.toString()))
                         .header(authHeaderKey(), authHeaderValue())
-                        .body(body)
-                        .asJson();
+                        .uri(URI.create(generateApiUrl(path)))
+                    ;
+                    break;
                 }
                 case PUT: {
-                    return Unirest
-                        .put(generateApiUrl(path))
-                        .headers(headers)
+                    requestBuilder = HttpRequest.newBuilder()
+                        .method("PUT", HttpRequest.BodyPublishers.ofString(body.toString()))
                         .header(authHeaderKey(), authHeaderValue())
-                        .body(body)
-                        .asJson();
+                        .uri(URI.create(generateApiUrl(path)))
+                    ;
+                    break;
                 }
                 case PATCH: {
-                    return Unirest
-                        .patch(generateApiUrl(path))
-                        .headers(headers)
+                    requestBuilder = HttpRequest.newBuilder()
+                        .method("PATCH", HttpRequest.BodyPublishers.ofString(body.toString()))
                         .header(authHeaderKey(), authHeaderValue())
-                        .body(body)
-                        .asJson();
+                        .uri(URI.create(generateApiUrl(path)))
+                    ;
+                    break;
                 }
                 case DELETE: {
-                    return Unirest
-                        .delete(generateApiUrl(path))
-                        .headers(headers)
+                    requestBuilder = HttpRequest.newBuilder()
+                        .DELETE()
                         .header(authHeaderKey(), authHeaderValue())
-                        .body(body)
-                        .asJson();
+                        .uri(URI.create(generateApiUrl(path)))
+                    ;
+                    break;
                 }
                 default: {
                     throw new IllegalArgumentException("unsupported method requested: " + method);
                 }
             }
-        } catch (UnirestException e) {
+
+            if (null != headers)
+                headers.forEach((k, v) -> requestBuilder.header(k, v));
+
+            HttpRequest request = requestBuilder.build();
+            // for DELETE first get the object being removed
+            if (method == HttpMethod.DELETE) {
+                HttpResponse<String> getResult = apiCall(path, HttpMethod.GET, headers, queryParams, body);
+                if (getResult.statusCode() == HttpStatus.OK.value()) {
+                    httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                    if (getResult.statusCode() == HttpStatus.OK.value()) {
+                        return getResult;
+                    }
+                }
+            }
+            return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        } catch (Exception e) {
             throw new ServiceCallException("error requesting status page service: "
-                    + e.getMessage()
+                + e.getMessage()
             ).setCause(e);
         }
     }
@@ -145,10 +182,22 @@ class StatusPageApi {
         else
             return baseUrl + "/" + path.substring(1);
     }
+    private String formatQueryParams(Map<String, Object> queryParams) {
+        if (null == queryParams || queryParams.isEmpty())
+            return "";
+        return "?" +
+            queryParams.entrySet()
+                .stream()
+                .map(e -> e.getKey() + "=" + e.getValue())
+                .collect(Collectors.joining("&"))
+            ;
+    }
     synchronized private void delay() {
         while (callTimestamp.get() > Instant.now().toEpochMilli() - rateLimitDelay.get()) {
             try { Thread.sleep(50); } catch (InterruptedException e) { }
         }
         callTimestamp.set(Instant.now().toEpochMilli());
     }
+
+
 }

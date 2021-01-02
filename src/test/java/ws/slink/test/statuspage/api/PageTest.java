@@ -24,6 +24,7 @@ public class PageTest {
 
     @Test public void testPagesList() {
         List<Page> pages = resource.statusPage().pages();
+        pages.stream().forEach(System.out::println);
         assertTrue(pages.size() > 0);
         assertEquals(1, pages.size());
         assertEquals(TestConstants.TEST_PAGE_NAME, pages.get(0).name());
@@ -31,6 +32,7 @@ public class PageTest {
 
     @Test public void testGetPage() {
         Optional<Page> page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true);
+        page.ifPresent(System.out::println);
         assertTrue(page.isPresent());
         assertEquals(TestConstants.TEST_PAGE_NAME, page.get().name());
     }

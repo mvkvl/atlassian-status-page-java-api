@@ -1,7 +1,11 @@
 package ws.slink.statuspage;
 
-import kong.unirest.json.JSONObject;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.json.JsonGeneratorImpl;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.NonNull;
+import ws.slink.statuspage.error.JsonParseException;
 import ws.slink.statuspage.model.Component;
 import ws.slink.statuspage.model.Group;
 import ws.slink.statuspage.model.Incident;
@@ -10,6 +14,7 @@ import ws.slink.statuspage.type.ComponentStatus;
 import ws.slink.statuspage.type.IncidentSeverity;
 import ws.slink.statuspage.type.IncidentStatus;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -472,44 +477,6 @@ public class StatusPage {
             incident.metadata(),
             incident.components()
         );
-        /*
-        JSONObject json = new JSONObject();
-
-        if (null != incident.id() && !incident.id().isEmpty())
-            json.put("id", incident.id());
-
-        if (null != incident.name() && !incident.name().isEmpty())
-            json.put("name", incident.name());
-
-        if (null != incident.status())
-            json.put("status", incident.status().value());
-
-        if (null != incident.impact())
-            json.put("impact_override", incident.impact().value());
-        else
-            json.put("impact_override", IncidentSeverity.NONE.value());
-
-        if (null != incident.metadata() && !incident.metadata().isEmpty())
-            json.put("metadata", incident.metadata());
-
-        json.put("deliver_notifications", true);
-
-        if (null != incident.page() && null != incident.page().id() && !incident.page().id().isEmpty())
-            json.put("page_id", incident.page().id());
-        else if (null != incident.pageId() && !incident.pageId().isEmpty())
-            json.put("page_id", incident.pageId());
-
-        if (null != incident.components())
-            json.put("component_ids", incident.components().stream().map(v -> v.id()).collect(Collectors.toList()));
-
-        if (null != incident.components())
-            json.put("components", incident.components().stream().collect(Collectors.toMap(Component::id, c -> c.status().value())));
-
-        if (null != body && !body.isEmpty())
-            json.put("body", body);
-
-        return new JSONObject().put("incident", json).toString();
-         */
     }
     private String incidentRequestJson(
         String id,
@@ -521,37 +488,37 @@ public class StatusPage {
         Map<String, Object> meta,
         List<Component> components
     ) {
-        JSONObject json = new JSONObject();
+        Map<String, Object> map = new HashMap<>();
 
         if (null != pageId && pageId.isEmpty())
-            json.put("page_id", pageId);
+            map.put("page_id", pageId);
 
         if (null != id && !id.isEmpty())
-            json.put("id", id);
+            map.put("id", id);
 
         if (null != title && !title.isEmpty())
-            json.put("name", title);
+            map.put("name", title);
 
         if (null != body && !body.isEmpty())
-            json.put("body", body);
+            map.put("body", body);
 
         if (null != status)
-            json.put("status", status.value());
+            map.put("status", status.value());
 
         if (null != severity)
-            json.put("impact_override", severity.value());
+            map.put("impact_override", severity.value());
         else
-            json.put("impact_override", IncidentSeverity.NONE.value());
+            map.put("impact_override", IncidentSeverity.NONE.value());
 
         if (null != meta && !meta.isEmpty())
-            json.put("metadata", meta);
+            map.put("metadata", meta);
 
         if (null != components && !components.isEmpty()) {
-            json.put("component_ids", components.stream().map(Component::id).collect(Collectors.toList()));
-            json.put("components", components.stream().collect(Collectors.toMap(Component::id, c -> c.status().value())));
+            map.put("component_ids", components.stream().map(Component::id).collect(Collectors.toList()));
+            map.put("components", components.stream().collect(Collectors.toMap(Component::id, c -> c.status().value())));
         }
 
-        json.put("deliver_notifications", true);
+        map.put("deliver_notifications", true);
 
 /*
         if (null != incident.components())
@@ -561,7 +528,7 @@ public class StatusPage {
             json.put("components", incident.components().stream().collect(Collectors.toMap(Component::id, c -> c.status().value())));
 */
 
-        return new JSONObject().put("incident", json).toString();
+        return mapToJsonString(Map.of("incident", map));
     }
 
 
@@ -589,10 +556,10 @@ public class StatusPage {
             Boolean showcase,
             String startDate
     ) {
-        JSONObject json = new JSONObject();
+        Map<String, Object> map = new HashMap<>();
 
         if (null != groupId && groupId.isEmpty())
-            json.put("group_id", groupId);
+            map.put("group_id", groupId);
 
 //        if (null != pageId && pageId.isEmpty())
 //            json.put("page_id", pageId);
@@ -601,26 +568,26 @@ public class StatusPage {
 //            json.put("id", id);
 
         if (null != title && !title.isEmpty())
-            json.put("name", title);
+            map.put("name", title);
 
         if (null != description && !description.isEmpty())
-            json.put("description", description);
+            map.put("description", description);
 
         if (null != status)
-            json.put("status", status.value());
+            map.put("status", status.value());
         else
-            json.put("status", ComponentStatus.OPERATIONAL.value());
+            map.put("status", ComponentStatus.OPERATIONAL.value());
 
         if (null != onlyShowIfDegraded)
-            json.put("only_show_if_degraded", onlyShowIfDegraded);
+            map.put("only_show_if_degraded", onlyShowIfDegraded);
 
         if (null != showcase)
-            json.put("showcase", showcase);
+            map.put("showcase", showcase);
 
         if (null != startDate)
-            json.put("start_date", startDate);
+            map.put("start_date", startDate);
 
-        return new JSONObject().put("component", json).toString();
+        return mapToJsonString(Map.of("component", map));
     }
 
     private String groupRequestJson(Group group) {
@@ -635,20 +602,30 @@ public class StatusPage {
             String description,
             List<String> componentIds
     ) {
-        JSONObject json = new JSONObject();
+        Map<String, Object> map = new HashMap<>();
 
         if (null != title && !title.isEmpty())
-            json.put("name", title);
-
+            map.put("name", title);
         if (null != componentIds && !componentIds.isEmpty())
-            json.put("components", componentIds);
+            map.put("components", componentIds);
 
-        JSONObject result = new JSONObject();
+        Map<String, Object>  result = new HashMap<>();
         if (null != description && !description.isEmpty())
             result.put("description", description);
-        result.put("component_group", json);
+        result.put("component_group", map);
 
-        return result.toString();
+        return mapToJsonString(result);
+    }
+
+    private String mapToJsonString(Map<String, Object> map) {
+        try {
+            return new ObjectMapper().writeValueAsString(map);
+        } catch (JsonProcessingException e) {
+            if (statusPageApi.bridgeErrors())
+                throw new JsonParseException(e.getMessage());
+            else
+                return "{}";
+        }
     }
 
 }
