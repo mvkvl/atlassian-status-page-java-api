@@ -1,11 +1,14 @@
 package ws.slink.test.statuspage.config;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.rules.ExternalResource;
 import ws.slink.statuspage.StatusPage;
 import ws.slink.statuspage.type.ComponentStatus;
 
 import java.util.Random;
+
+import static org.junit.Assert.assertFalse;
 
 public class StatusPageTestResource extends ExternalResource {
 
@@ -35,6 +38,9 @@ public class StatusPageTestResource extends ExternalResource {
 
     @Override
     protected void before() {
+
+        assertFalse(StringUtils.isBlank(System.getenv("STATUSPAGE_API_KEY")));
+
         if (refCount++ == 0) {
             // actual test resources init
             this.statusPage = new StatusPage.Builder()

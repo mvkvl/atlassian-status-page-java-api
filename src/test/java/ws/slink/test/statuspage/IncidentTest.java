@@ -1,9 +1,8 @@
-package ws.slink.test.statuspage.api;
+package ws.slink.test.statuspage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.ClassRule;
 import org.junit.FixMethodOrder;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import ws.slink.statuspage.model.*;
@@ -21,13 +20,13 @@ import static ws.slink.test.statuspage.tools.AssertTools.assertEmpty;
 import static ws.slink.test.statuspage.tools.AssertTools.assertNonEmpty;
 
 @Slf4j
-@FixMethodOrder(MethodSorters.JVM)
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class IncidentTest {
 
     @ClassRule
     public static StatusPageTestResource resource = StatusPageTestResource.get();
 
-    @Test public void testCreateIncident() {
+    @Test public void testA_CreateIncident() {
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
         resource.statusPage().createIncident(
             page.id(),
@@ -39,14 +38,14 @@ public class IncidentTest {
         assertTrue(page.incidents().stream().filter(i -> i.name().endsWith(resource.getIncidentTitle())).findAny().isPresent());
     }
 
-    @Test public void testListIncidents() {
+    @Test public void testB_ListIncidents() {
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
         List<Incident> incidents = resource.statusPage().incidents(page);
         assertEquals(1, incidents.size());
         assertTrue(incidents.stream().filter(i -> i.name().endsWith(resource.getIncidentTitle())).findAny().isPresent());
     }
 
-    @Test public void testGetIncident() {
+    @Test public void testC_GetIncident() {
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
         assertEquals(1, page.incidents().size());
 
@@ -57,7 +56,7 @@ public class IncidentTest {
         assertEquals(IncidentStatus.INVESTIGATING, incident.get().status());
     }
 
-    @Test public void testUpdateIncident() {
+    @Test public void testD_UpdateIncident() {
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
         assertEquals(1, page.incidents().size());
 
@@ -79,7 +78,7 @@ public class IncidentTest {
         assertEquals(IncidentStatus.MONITORING, reloaded.get().status());
     }
 
-    @Test public void testDeleteIncident() {
+    @Test public void testE_DeleteIncident() {
 //        resource.getStatusPage().pages().get(0).id();
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
         assertEquals(1, page.incidents().size());
@@ -95,7 +94,7 @@ public class IncidentTest {
     }
 
 //    @Ignore
-    @Test public void testUpdateIncidentWithComponents() {
+    @Test public void testF_UpdateIncidentWithComponents() {
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
 
         Optional<Component> componentA = resource.statusPage().createComponent(
@@ -189,7 +188,7 @@ public class IncidentTest {
     }
 
 //    @Ignore
-    @Test public void testIncidentLifecycleWithComponents() {
+    @Test public void testG_IncidentLifecycleWithComponents() {
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
 
         Optional<Component> componentA = resource.statusPage().createComponent(

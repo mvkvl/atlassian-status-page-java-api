@@ -1,8 +1,6 @@
 package ws.slink.statuspage;
 
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.json.JsonGeneratorImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.NonNull;
 import ws.slink.statuspage.error.JsonParseException;
@@ -87,9 +85,7 @@ public class StatusPage {
     // SYNC STATUS PAGE
     public List<Page> sync() {
         List<Page> pages = pages();
-        pages.stream().forEach(page -> {
-            syncPage(page);
-        });
+        pages.stream().forEach(this::syncPage);
         return pages;
     }
     public Page sync(@NonNull Page page) {
@@ -116,7 +112,7 @@ public class StatusPage {
     }
     public List<Page> pages(int pageSize, int pageNum) {
         return new StatusPageQuery(statusPageApi, Page.class)
-                .list("pages", "no pages found", pageSize, pageNum);
+            .list("pages", "no pages found", pageSize, pageNum);
     }
 
     public List<Group> groups(Page page) {
@@ -127,12 +123,13 @@ public class StatusPage {
     }
     private List<Group> groups(String pageId, int pageSize, int pageNum) {
         return new StatusPageQuery(statusPageApi, Group.class)
-                .list(
-                        "pages/" + pageId + "/component-groups",
-                        "no component groups found for '" + pageId + "'",
-                        pageSize,
-                        pageNum
-                );
+            .list(
+                "pages/" + pageId + "/component-groups",
+                "no component groups found for '" + pageId + "'",
+                pageSize,
+                pageNum
+            )
+        ;
     }
 
     public List<Component> components(Page page) {
@@ -146,12 +143,13 @@ public class StatusPage {
     }
     public List<Component> components(String pageId, int pageSize, int pageNum) {
         return new StatusPageQuery(statusPageApi, Component.class)
-                .list(
-                        "pages/" + pageId + "/components",
-                        "no components found for page '" + pageId + "'",
-                        pageSize,
-                        pageNum
-                );
+            .list(
+                "pages/" + pageId + "/components",
+                "no components found for page '" + pageId + "'",
+                pageSize,
+                pageNum
+            )
+        ;
     }
 
     public List<Component> groupComponents(Group group) {
@@ -162,17 +160,17 @@ public class StatusPage {
     }
     private List<Component> groupComponents(String pageId, String groupId, int pageSize, int pageNum) {
         return new StatusPageQuery(statusPageApi, Component.class)
-                .list(
-                        "pages/" + pageId + "/components",
-                        "no component found for page '" + pageId + "'",
-                        pageSize,
-                        pageNum
-                )
-                .stream()
-                .map(v -> (Component) v)
-                .filter(v -> null != v.groupId() && v.groupId().equals(groupId))
-                .collect(Collectors.toList())
-                ;
+            .list(
+                "pages/" + pageId + "/components",
+                "no component found for page '" + pageId + "'",
+                pageSize,
+                pageNum
+            )
+            .stream()
+            .map(v -> (Component) v)
+            .filter(v -> null != v.groupId() && v.groupId().equals(groupId))
+            .collect(Collectors.toList())
+        ;
     }
 
     public List<Incident> incidents(Page page) {
@@ -198,12 +196,12 @@ public class StatusPage {
     }
     public List<Incident> incidents(String pageId, String query, int pageSize, int pageNum) {
         return new StatusPageQuery(statusPageApi, Incident.class)
-                .list(
-                        "pages/" + pageId + "/incidents",
-                        "no incidents found for page '" + pageId + "'",
-                        pageSize,
-                        pageNum
-                );
+            .list(
+                "pages/" + pageId + "/incidents",
+                "no incidents found for page '" + pageId + "'",
+                pageSize,
+                pageNum
+            );
     }
 
 
@@ -213,7 +211,7 @@ public class StatusPage {
     }
     public Optional<Page> getPage(String pageId, boolean full) {
         Optional<Page> page = new StatusPageQuery(statusPageApi, Page.class)
-                .get("pages/" + pageId, "no page found with id " + pageId);
+            .get("pages/" + pageId, "no page found with id " + pageId);
         if (full)
             page.ifPresent(this::syncPage);
         return page;
@@ -224,7 +222,7 @@ public class StatusPage {
     }
     public Optional<Group> getGroup(String pageId, String groupId, boolean full) {
         Optional<Group> group = new StatusPageQuery(statusPageApi, Group.class)
-                .get("pages/" + pageId + "/component-groups/" + groupId, "no group found for page #" + pageId + " with id " + groupId);
+            .get("pages/" + pageId + "/component-groups/" + groupId, "no group found for page #" + pageId + " with id " + groupId);
         if (full)
             group.ifPresent(this::syncGroup);
         return group;
@@ -235,7 +233,7 @@ public class StatusPage {
     }
     public Optional<Component> getComponent(String pageId, String componentId, boolean full) {
         Optional<Component> component = new StatusPageQuery(statusPageApi, Component.class)
-                .get("pages/" + pageId + "/components/" + componentId, "no component found for page #" + pageId + " with id " + componentId);
+            .get("pages/" + pageId + "/components/" + componentId, "no component found for page #" + pageId + " with id " + componentId);
 //        if (full)
 //            component.ifPresent(this::syncGroup);
         return component;
@@ -246,7 +244,7 @@ public class StatusPage {
     }
     public Optional<Incident> getIncident(String pageId, String incidentId, boolean full) {
         Optional<Incident> component = new StatusPageQuery(statusPageApi, Incident.class)
-                .get("pages/" + pageId + "/incidents/" + incidentId, "no incident found for page #" + pageId + " with id " + incidentId);
+            .get("pages/" + pageId + "/incidents/" + incidentId, "no incident found for page #" + pageId + " with id " + incidentId);
 //        if (full)
 //            component.ifPresent(this::syncIncident);
         return component;
@@ -282,7 +280,6 @@ public class StatusPage {
     }
     public Optional<Incident> createIncident(Incident incident, String body) {
         return createIncident(incident.pageId(), incident, body);
-
     }
     public Optional<Incident> createIncident(String pageId, Incident incident, String body) {
         return new StatusPageQuery(statusPageApi, Incident.class)
@@ -534,15 +531,15 @@ public class StatusPage {
 
     private String componentRequestJson(Component component) {
         return componentRequestJson(
-                component.id(),
-                component.name(),
-                component.description(),
-                component.pageId(),
-                component.groupId(),
-                component.status(),
-                component.onlyShowIfDegraded(),
-                component.showcase(),
-                null
+            component.id(),
+            component.name(),
+            component.description(),
+            component.pageId(),
+            component.groupId(),
+            component.status(),
+            component.onlyShowIfDegraded(),
+            component.showcase(),
+            null
         );
     }
     private String componentRequestJson(
@@ -629,6 +626,7 @@ public class StatusPage {
     }
 
 }
+
 /*
 {
         "component": {

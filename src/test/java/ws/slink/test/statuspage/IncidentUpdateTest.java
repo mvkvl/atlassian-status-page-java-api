@@ -1,4 +1,4 @@
-package ws.slink.test.statuspage.api;
+package ws.slink.test.statuspage;
 
 import org.junit.Test;
 

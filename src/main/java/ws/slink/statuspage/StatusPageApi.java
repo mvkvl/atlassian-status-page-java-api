@@ -148,17 +148,23 @@ class StatusPageApi {
                 headers.forEach((k, v) -> requestBuilder.header(k, v));
 
             HttpRequest request = requestBuilder.build();
+            HttpResponse<String> response = null;
             // for DELETE first get the object being removed
             if (method == HttpMethod.DELETE) {
-                HttpResponse<String> getResult = apiCall(path, HttpMethod.GET, headers, queryParams, body);
-                if (getResult.statusCode() == HttpStatus.OK.value()) {
+                response = apiCall(path, HttpMethod.GET, headers, queryParams, body);
+                if (response.statusCode() == HttpStatus.OK.value()) {
                     httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-                    if (getResult.statusCode() == HttpStatus.OK.value()) {
-                        return getResult;
-                    }
+                    return response;
                 }
             }
+
             return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+//            if (getResult.statusCode() == HttpStatus.OK.value()) {
+//                httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+//                if (getResult.statusCode() == HttpStatus.OK.value()) {
+//                    return getResult;
+//                }
+//            }
         } catch (Exception e) {
             throw new ServiceCallException("error requesting status page service: "
                 + e.getMessage()

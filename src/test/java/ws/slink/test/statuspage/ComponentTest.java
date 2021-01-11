@@ -1,4 +1,4 @@
-package ws.slink.test.statuspage.api;
+package ws.slink.test.statuspage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.ClassRule;
@@ -17,13 +17,13 @@ import java.util.Optional;
 import static org.junit.Assert.*;
 
 @Slf4j
-@FixMethodOrder(MethodSorters.JVM)
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ComponentTest {
 
     @ClassRule
     public static StatusPageTestResource resource = StatusPageTestResource.get();
 
-    @Test public void testCreateComponent() {
+    @Test public void testA_CreateComponent() {
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
         resource.statusPage().createComponent(
             page.id(),
@@ -34,14 +34,14 @@ public class ComponentTest {
         assertTrue(page.components().stream().filter(i -> i.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findAny().isPresent());
     }
 
-    @Test public void testListComponents() {
+    @Test public void testB_ListComponents() {
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
         List<Component> components = resource.statusPage().components(page);
         assertTrue(components.size() > 0);
         assertTrue(components.stream().filter(i -> i.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findAny().isPresent());
     }
 
-    @Test public void testGetComponent() {
+    @Test public void testC_GetComponent() {
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
         assertTrue(page.components().size() > 0);
 
@@ -54,7 +54,7 @@ public class ComponentTest {
         assertEquals(ComponentStatus.OPERATIONAL, loaded.get().status());
     }
 
-    @Test public void testUpdateComponent() {
+    @Test public void testD_UpdateComponent() {
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
 
         Optional<Component> component = page.components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findAny();
@@ -72,7 +72,7 @@ public class ComponentTest {
         assertEquals("updated description", updated.get().description());
     }
 
-    @Test public void testDeleteComponent() {
+    @Test public void testE_DeleteComponent() {
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
 
         Optional<Component> component = page.components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findAny();

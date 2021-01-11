@@ -1,4 +1,4 @@
-package ws.slink.test.statuspage.api;
+package ws.slink.test.statuspage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.*;
@@ -16,7 +16,7 @@ import java.util.Optional;
 import static org.junit.Assert.*;
 
 @Slf4j
-@FixMethodOrder(MethodSorters.JVM)
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class GroupTest {
 
     @ClassRule
@@ -51,7 +51,7 @@ public class GroupTest {
     }
 
     @Test
-    public void testCreateGroup() {
+    public void testA_CreateGroup() {
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
         resource.statusPage().createGroup(
                 page.id(),
@@ -64,7 +64,7 @@ public class GroupTest {
     }
 
     @Test
-    public void testListGroups() {
+    public void testB_ListGroups() {
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
 
         List<Group> groups = resource.statusPage().groups(page);
@@ -75,7 +75,7 @@ public class GroupTest {
     }
 
     @Test
-    public void testGetGroup() {
+    public void testC_GetGroup() {
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
 
         List<Group> groups = resource.statusPage().groups(page);
@@ -88,7 +88,7 @@ public class GroupTest {
     }
 
     @Test
-    public void testUpdateGroup() {
+    public void testD_UpdateGroup() {
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
         List<Group> groups = resource.statusPage().groups(page);
         assertTrue(groups.size() > 0);
@@ -110,7 +110,7 @@ public class GroupTest {
     }
 
     @Test
-    public void testDeleteGroup() {
+    public void testE_DeleteGroup() {
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
         List<Group> groups = resource.statusPage().groups(page);
         assertTrue(groups.size() > 0);
