@@ -1,9 +1,6 @@
 package ws.slink.test.statuspage.config;
 
-import kong.unirest.Config;
-import kong.unirest.HttpRequest;
-import kong.unirest.Interceptor;
-import kong.unirest.Unirest;
+import kong.unirest.*;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.rules.ExternalResource;
 import ws.slink.statuspage.StatusPage;
@@ -41,16 +38,6 @@ public class StatusPageTestResource extends ExternalResource {
     protected void before() {
         if (refCount++ == 0) {
             // actual test resources init
-            if ("true".equalsIgnoreCase(System.getenv("LOG_QUERIES"))) {
-                Unirest.config()
-                    .interceptor(new Interceptor() {
-                        @Override
-                        public void onRequest(HttpRequest<?> request, Config config) {
-                        System.out.println("--- " + request.getHttpMethod() + " " + request.getUrl());
-                        }
-                    })
-                ;
-            }
             this.statusPage = new StatusPage.Builder()
                 .apiKey(System.getenv("STATUSPAGE_API_KEY"))
                 .bridgeErrors(true)
@@ -72,7 +59,7 @@ public class StatusPageTestResource extends ExternalResource {
         try {
             task.run();
         } catch (Exception e) {
-            if ("true".equalsIgnoreCase(System.getenv("PRINT_STACK_TRACE"))) {
+            if ("true".equalsIgnoreCase(System.getenv("STATUSPAGE_PRINT_STACK_TRACE"))) {
                 e.printStackTrace();
                 if (null != e.getCause())
                     e.getCause().printStackTrace();

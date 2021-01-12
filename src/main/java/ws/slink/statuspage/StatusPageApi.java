@@ -1,9 +1,8 @@
 package ws.slink.statuspage;
 
-import kong.unirest.HttpResponse;
-import kong.unirest.Unirest;
-import kong.unirest.UnirestException;
+import kong.unirest.*;
 import ws.slink.statuspage.error.ServiceCallException;
+import ws.slink.statuspage.interceptor.LoggingInterceptor;
 import ws.slink.statuspage.type.HttpMethod;
 
 import java.time.Instant;
@@ -31,16 +30,19 @@ class StatusPageApi {
 
     public StatusPageApi(String apiToken) {
         this.apiToken = apiToken;
+        init();
     }
     public StatusPageApi(String apiToken, String baseUrl) {
         this.apiToken = apiToken;
         this.baseUrl  = baseUrl;
+        init();
     }
     public StatusPageApi(String apiToken, String baseUrl, long rateLimit) {
         this.apiToken = apiToken;
         this.baseUrl  = baseUrl;
         this.rateLimit(true);
         this.rateLimitDelay(rateLimit);
+        init();
     }
     public StatusPageApi(String apiToken, String baseUrl, long rateLimit, boolean bridgeErrors) {
         this.apiToken = apiToken;
@@ -48,6 +50,13 @@ class StatusPageApi {
         this.rateLimit(true);
         this.rateLimitDelay(rateLimit);
         this.bridgeErrors(bridgeErrors);
+        init();
+    }
+
+    private void init() {
+        if ("true".equalsIgnoreCase(System.getenv("STATUSPAGE_LOG_QUERIES"))) {
+            Unirest.config().interceptor(LoggingInterceptor.instance());
+        }
     }
 
     public StatusPageApi rateLimit(boolean value) {

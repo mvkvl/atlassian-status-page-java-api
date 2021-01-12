@@ -16,7 +16,7 @@ import java.util.Optional;
 import static org.junit.Assert.*;
 
 @Slf4j
-@FixMethodOrder(MethodSorters.JVM)
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class GroupTest {
 
     @ClassRule
@@ -51,7 +51,7 @@ public class GroupTest {
     }
 
     @Test
-    public void testCreateGroup() {
+    public void A_testCreateGroup() {
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
         resource.statusPage().createGroup(
                 page.id(),
@@ -64,7 +64,7 @@ public class GroupTest {
     }
 
     @Test
-    public void testListGroups() {
+    public void B_testListGroups() {
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
 
         List<Group> groups = resource.statusPage().groups(page);
@@ -75,7 +75,7 @@ public class GroupTest {
     }
 
     @Test
-    public void testGetGroup() {
+    public void C_testGetGroup() {
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
 
         List<Group> groups = resource.statusPage().groups(page);
@@ -88,7 +88,7 @@ public class GroupTest {
     }
 
     @Test
-    public void testUpdateGroup() {
+    public void D_testUpdateGroup() {
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
         List<Group> groups = resource.statusPage().groups(page);
         assertTrue(groups.size() > 0);
@@ -110,7 +110,7 @@ public class GroupTest {
     }
 
     @Test
-    public void testDeleteGroup() {
+    public void E_testDeleteGroup() {
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
         List<Group> groups = resource.statusPage().groups(page);
         assertTrue(groups.size() > 0);

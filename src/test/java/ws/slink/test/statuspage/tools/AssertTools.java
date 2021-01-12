@@ -21,7 +21,7 @@ public class AssertTools {
 
     public static void assertEmpty(Optional<? extends Object> value) {
         try {
-            assertTrue(value.isEmpty());
+            assertFalse(value.isPresent());
         } catch (AssertionError e) {
             filterStackTrace(e);
             throw e;
@@ -30,7 +30,7 @@ public class AssertTools {
 
     public static void assertNonEmpty(Optional<? extends Object> value) {
         try {
-            assertFalse(value.isEmpty());
+            assertTrue(value.isPresent());
         } catch (AssertionError e) {
             filterStackTrace(e);
             throw e;

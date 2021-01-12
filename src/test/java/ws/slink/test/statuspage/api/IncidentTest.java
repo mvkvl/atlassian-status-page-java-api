@@ -21,13 +21,13 @@ import static ws.slink.test.statuspage.tools.AssertTools.assertEmpty;
 import static ws.slink.test.statuspage.tools.AssertTools.assertNonEmpty;
 
 @Slf4j
-@FixMethodOrder(MethodSorters.JVM)
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class IncidentTest {
 
     @ClassRule
     public static StatusPageTestResource resource = StatusPageTestResource.get();
 
-    @Test public void testCreateIncident() {
+    @Test public void A_testCreateIncident() {
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
         resource.statusPage().createIncident(
             page.id(),
@@ -39,14 +39,14 @@ public class IncidentTest {
         assertTrue(page.incidents().stream().filter(i -> i.name().endsWith(resource.getIncidentTitle())).findAny().isPresent());
     }
 
-    @Test public void testListIncidents() {
+    @Test public void B_testListIncidents() {
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
         List<Incident> incidents = resource.statusPage().incidents(page);
         assertEquals(1, incidents.size());
         assertTrue(incidents.stream().filter(i -> i.name().endsWith(resource.getIncidentTitle())).findAny().isPresent());
     }
 
-    @Test public void testGetIncident() {
+    @Test public void C_testGetIncident() {
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
         assertEquals(1, page.incidents().size());
 
@@ -57,7 +57,7 @@ public class IncidentTest {
         assertEquals(IncidentStatus.INVESTIGATING, incident.get().status());
     }
 
-    @Test public void testUpdateIncident() {
+    @Test public void D_testUpdateIncident() {
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
         assertEquals(1, page.incidents().size());
 
@@ -79,7 +79,7 @@ public class IncidentTest {
         assertEquals(IncidentStatus.MONITORING, reloaded.get().status());
     }
 
-    @Test public void testDeleteIncident() {
+    @Test public void E_testDeleteIncident() {
 //        resource.getStatusPage().pages().get(0).id();
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
         assertEquals(1, page.incidents().size());
@@ -94,8 +94,8 @@ public class IncidentTest {
         assertEquals(0, page.incidents().size());
     }
 
-    @Ignore
-    @Test public void testUpdateIncidentWithComponents() {
+//    @Ignore
+    @Test public void F_testUpdateIncidentWithComponents() {
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
 
         Optional<Component> componentA = resource.statusPage().createComponent(
@@ -188,8 +188,8 @@ public class IncidentTest {
         assertEmpty(page.incidents());
     }
 
-    @Ignore
-    @Test public void testIncidentLifecycleWithComponents() {
+//    @Ignore
+    @Test public void G_testIncidentLifecycleWithComponents() {
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
 
         Optional<Component> componentA = resource.statusPage().createComponent(
@@ -324,91 +324,3 @@ public class IncidentTest {
     }
 
 }
-
-/*
-//    @Test
-    public void testCreateIncidentA() {
-        resource.run(() -> {
-            Page page = resource.getStatusPage().getPage(resource.getStatusPage().pages().get(0).id(), true).get();
-            page = resource.getStatusPage().sync(page);
-
-            System.out.println(page);
-//            Incident incident = resource.getStatusPage().incidents(page.id()).get(0);
-
-            Incident incident = new Incident()
-                    .name("test incident")
-                    .impact(IncidentSeverity.MAJOR)
-                    .status(IncidentStatus.INVESTIGATING);
-
-            page.groups()
-                    .stream()
-                    .flatMap(v -> v.components().stream())
-                    .filter(v -> !v.group())
-                    .forEach(v -> incident.components().add(v));
-            incident.components().stream().forEach(c -> c.status(resource.randomComponentStatus()));
-            System.out.println(incident);
-
-            resource.getStatusPage().createIncident(page.id(), incident, "something's happened... dealing with it").ifPresentOrElse(System.out::println, () -> System.out.println("could not create incident"));
-
-//            resource.getStatusPage().getIncident(page.id(), incident.id()).ifPresent(System.out::println);
-//            resource.getStatusPage().getIncident(page.id(), incident.id(), true).ifPresent(System.out::println);
-//            resource.getStatusPage().getIncident(page.id(), "stub", true).ifPresent(System.out::println);
-        });
-    }
-*/
-
-//    @Test public void testCreateIncidentSimpleA() {
-//        Page page = resource.getStatusPage().getPage(resource.getStatusPage().pages().get(0).id(), true).get();
-//        resource.getStatusPage().createIncident(
-//                page.id(),
-//                resource.getIncidentTitle(),
-//                "something's happened... dealing with it",
-//                IncidentSeverity.MAJOR
-//        );//.ifPresentOrElse(System.out::println, () -> System.out.println("could not create incident"));
-//        page = resource.getStatusPage().sync(page);
-//
-//        assertTrue(page.incidents().stream().filter(i -> i.name().endsWith(resource.getIncidentTitle())).findAny().isPresent());
-//    }
-
-
-    /*
-    @Test public void testGetPage() {
-        resource.run(() -> {
-            Page page = resource.getStatusPage().pages().get(0);
-            resource.getStatusPage().getPage(page.id()).ifPresent(System.out::println);
-            resource.getStatusPage().getPage(page.id(), true).ifPresent(System.out::println);
-            resource.getStatusPage().getPage("stub", true).ifPresent(System.out::println);
-            System.out.println(page.allComponents());
-            resource.getStatusPage().getPage(page.id(), true).ifPresent(p -> System.out.println(p.allComponents()));
-        });
-    }
-
-    @Test public void testGetGroup() {
-        resource.run(() -> {
-            Page page = resource.getStatusPage().getPage(resource.getStatusPage().pages().get(0).id(), true).get();
-            System.out.println("test page : " + page);
-
-            Group group = page.groups().get(0);
-            System.out.println("test group: " + group);
-
-            resource.getStatusPage().getGroup(page.id(), group.id()).ifPresent(System.out::println);
-            resource.getStatusPage().getGroup(page.id(), group.id(), true).ifPresent(System.out::println);
-            resource.getStatusPage().getGroup(page.id(), "stub", true).ifPresent(System.out::println);
-        });
-    }
-
-    @Test public void testGetComponent() {
-        resource.run(() -> {
-            Page page = resource.getStatusPage().getPage(resource.getStatusPage().pages().get(0).id(), true).get();
-            System.out.println("test page     : " + page);
-
-            Component component = resource.getStatusPage().components(page.id()).get(0);
-            System.out.println("test component: " + component);
-
-            resource.getStatusPage().getComponent(page.id(), component.id()).ifPresent(System.out::println);
-            resource.getStatusPage().getComponent(page.id(), component.id(), true).ifPresent(System.out::println);
-            resource.getStatusPage().getComponent(page.id(), "stub", true).ifPresent(System.out::println);
-        });
-    }
-    */
-

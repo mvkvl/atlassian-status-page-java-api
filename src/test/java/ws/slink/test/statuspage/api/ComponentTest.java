@@ -17,13 +17,13 @@ import java.util.Optional;
 import static org.junit.Assert.*;
 
 @Slf4j
-@FixMethodOrder(MethodSorters.JVM)
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ComponentTest {
 
     @ClassRule
     public static StatusPageTestResource resource = StatusPageTestResource.get();
 
-    @Test public void testCreateComponent() {
+    @Test public void A_testCreateComponent() {
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
         resource.statusPage().createComponent(
             page.id(),
@@ -34,14 +34,14 @@ public class ComponentTest {
         assertTrue(page.components().stream().filter(i -> i.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findAny().isPresent());
     }
 
-    @Test public void testListComponents() {
+    @Test public void B_testListComponents() {
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
         List<Component> components = resource.statusPage().components(page);
         assertTrue(components.size() > 0);
         assertTrue(components.stream().filter(i -> i.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findAny().isPresent());
     }
 
-    @Test public void testGetComponent() {
+    @Test public void C_testGetComponent() {
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
         assertTrue(page.components().size() > 0);
 
@@ -54,7 +54,7 @@ public class ComponentTest {
         assertEquals(ComponentStatus.OPERATIONAL, loaded.get().status());
     }
 
-    @Test public void testUpdateComponent() {
+    @Test public void D_testUpdateComponent() {
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
 
         Optional<Component> component = page.components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findAny();
@@ -72,7 +72,7 @@ public class ComponentTest {
         assertEquals("updated description", updated.get().description());
     }
 
-    @Test public void testDeleteComponent() {
+    @Test public void E_testDeleteComponent() {
         Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
 
         Optional<Component> component = page.components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findAny();
@@ -86,18 +86,3 @@ public class ComponentTest {
     }
 
 }
-
-
-/*
-        resource.run(() -> {
-            Page page = resource.getStatusPage().getPage(resource.getStatusPage().pages().get(0).id(), true).get();
-            System.out.println("test page     : " + page);
-
-            Component component = resource.getStatusPage().components(page.id()).get(0);
-            System.out.println("test component: " + component);
-
-            resource.getStatusPage().getComponent(page.id(), component.id()).ifPresent(System.out::println);
-            resource.getStatusPage().getComponent(page.id(), component.id(), true).ifPresent(System.out::println);
-            resource.getStatusPage().getComponent(page.id(), "stub", true).ifPresent(System.out::println);
-        });
- */

@@ -16,20 +16,20 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 @Slf4j
-@FixMethodOrder(MethodSorters.JVM)
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class PageTest {
 
     @ClassRule
     public static StatusPageTestResource resource = StatusPageTestResource.get();
 
-    @Test public void testPagesList() {
+    @Test public void A_testPagesList() {
         List<Page> pages = resource.statusPage().pages();
         assertTrue(pages.size() > 0);
         assertEquals(1, pages.size());
         assertEquals(TestConstants.TEST_PAGE_NAME, pages.get(0).name());
     }
 
-    @Test public void testGetPage() {
+    @Test public void B_testGetPage() {
         Optional<Page> page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true);
         assertTrue(page.isPresent());
         assertEquals(TestConstants.TEST_PAGE_NAME, page.get().name());
