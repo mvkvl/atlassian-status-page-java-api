@@ -1,19 +1,32 @@
 package ws.slink.statuspage.type;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import ws.slink.statuspage.type.converter.IncidentStatusDeserializer;
+import com.google.gson.annotations.SerializedName;
 
-@JsonDeserialize(using = IncidentStatusDeserializer.class)
 public enum IncidentStatus {
-     INVESTIGATING("investigating")
-    ,IDENTIFIED("identified")
-    ,MONITORING("monitoring")
-    ,RESOLVED("resolved")
 
-    ,SCHEDULED("scheduled")
-    ,IN_PROGRESS("in_progress")
-    ,VERIFYING("verifying")
-    ,COMPLETED("completed")
+    @SerializedName("investigating")
+    INVESTIGATING("investigating"),
+
+    @SerializedName("identified")
+    IDENTIFIED("identified"),
+
+    @SerializedName("monitoring")
+    MONITORING("monitoring"),
+
+    @SerializedName("resolved")
+    RESOLVED("resolved"),
+
+    @SerializedName("scheduled")
+    SCHEDULED("scheduled"),
+
+    @SerializedName("in_progress")
+    IN_PROGRESS("in_progress"),
+
+    @SerializedName("verifying")
+    VERIFYING("verifying"),
+
+    @SerializedName("completed")
+    COMPLETED("completed"),
     ;
 
     private String value;

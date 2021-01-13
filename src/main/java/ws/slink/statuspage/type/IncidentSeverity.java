@@ -1,15 +1,23 @@
 package ws.slink.statuspage.type;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import ws.slink.statuspage.type.converter.IncidentSeverityDeserializer;
+import com.google.gson.annotations.SerializedName;
 
-@JsonDeserialize(using = IncidentSeverityDeserializer.class)
 public enum IncidentSeverity {
-     NONE("none")
-    ,MINOR("minor")
-    ,MAJOR("major")
-    ,CRITICAL("critical")
-    ,MAINTENANCE("maintenance")
+
+     @SerializedName("none")
+     NONE("none"),
+
+     @SerializedName("minor")
+     MINOR("minor"),
+
+     @SerializedName("major")
+     MAJOR("major"),
+
+     @SerializedName("critical")
+     CRITICAL("critical"),
+
+     @SerializedName("maintenance")
+     MAINTENANCE("maintenance")
     ;
 
     private String value;

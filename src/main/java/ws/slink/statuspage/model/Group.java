@@ -1,6 +1,6 @@
 package ws.slink.statuspage.model;
 
-import com.fasterxml.jackson.annotation.*;
+import com.google.gson.annotations.SerializedName;
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.Accessors;
@@ -11,30 +11,26 @@ import java.util.List;
 @Data
 @Accessors(fluent = true)
 @ToString
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonPropertyOrder({"id", "name"})
-@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
 public class Group {
 
     private String id;
     private String name;
 
-    @JsonProperty("page_id")
+    @SerializedName("page_id")
     private String pageId;
 
     private String description;
 
-    @JsonProperty("component")
-    private List<String> componentIds;
+    @SerializedName("components")
+    private List<String> components;
 
-    @JsonIgnore
-    private List<Component> components;
+    private List<Component> componentObjects;
 
-    public List<Component> components() {
-        if (null == components) {
+    public List<Component> componentObjects() {
+        if (null == componentObjects) {
             return Collections.emptyList();
         } else {
-            return components;
+            return componentObjects;
         }
     }
 }

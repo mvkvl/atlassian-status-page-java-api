@@ -5,7 +5,7 @@ import org.junit.rules.ExternalResource;
 
 public class TestConstants extends ExternalResource {
 
-    public static final String TEST_PAGE_NAME = "dxFeed";
+    public static final String TEST_PAGE_NAME = "devTest";
     public static final String TEST_COMPONENT_A_TITLE = "component A";
     public static final String TEST_COMPONENT_A_DESCRIPTION = "component A description";
     public static final String TEST_COMPONENT_B_TITLE = "component B";

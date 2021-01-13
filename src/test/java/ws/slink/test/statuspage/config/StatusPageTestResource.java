@@ -1,6 +1,5 @@
 package ws.slink.test.statuspage.config;
 
-import kong.unirest.*;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.rules.ExternalResource;
 import ws.slink.statuspage.StatusPage;

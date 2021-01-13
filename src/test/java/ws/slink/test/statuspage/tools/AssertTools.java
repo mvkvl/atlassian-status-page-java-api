@@ -2,7 +2,6 @@ package ws.slink.test.statuspage.tools;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 
 import static org.junit.Assert.assertFalse;
