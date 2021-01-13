@@ -1,9 +1,6 @@
 package ws.slink.statuspage.model;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.google.gson.annotations.SerializedName;
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.Accessors;
@@ -17,9 +14,6 @@ import java.util.List;
 @Data
 @Accessors(fluent = true)
 @ToString
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonPropertyOrder({"id", "name"})
-@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
 public class IncidentUpdate {
 
     private String id;
@@ -30,13 +24,13 @@ public class IncidentUpdate {
 
     private String incident_id;
 
-    @JsonProperty("created_at")
+    @SerializedName("created_at")
     private LocalDateTime createdAt;
 
-    @JsonProperty("updated_at")
+    @SerializedName("updated_at")
     private LocalDateTime updatedAt;
 
-    @JsonProperty("affected_components")
+    @SerializedName("affected_components")
     private List<ComponentUpdate> affectedComponents = new ArrayList<>();
     public List<ComponentUpdate> affectedComponents() {
         if (null == affectedComponents)

@@ -14,6 +14,9 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.Assert.*;
+import static ws.slink.test.statuspage.config.TestConstants.*;
+import static ws.slink.test.statuspage.tools.AssertTools.assertEmpty;
+import static ws.slink.test.statuspage.tools.AssertTools.assertNonEmpty;
 
 @Slf4j
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -27,17 +30,18 @@ public class GroupTest {
 
     @BeforeClass
     public static void prepare() {
-        Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
+        Optional<Page> page = resource.statusPage().getPageByTitle(TEST_PAGE_NAME, true);
+        assertNonEmpty(page);
         componentA = resource.statusPage().createComponent(
-                page.id(),
-                TestConstants.TEST_COMPONENT_A_TITLE,
+                page.get().id(),
+                TEST_COMPONENT_A_TITLE,
                 TestConstants.TEST_COMPONENT_A_DESCRIPTION
         );
         assertNotNull(componentA);
         assertTrue(componentA.isPresent());
         componentB = resource.statusPage().createComponent(
-                page.id(),
-                TestConstants.TEST_COMPONENT_B_TITLE,
+                page.get().id(),
+                TEST_COMPONENT_B_TITLE,
                 TestConstants.TEST_COMPONENT_B_DESCRIPTION
         );
         assertNotNull(componentA);
@@ -52,22 +56,25 @@ public class GroupTest {
 
     @Test
     public void A_testCreateGroup() {
-        Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
+        Optional<Page> page = resource.statusPage().getPageByTitle(TEST_PAGE_NAME, true);
+        assertNonEmpty(page);
         resource.statusPage().createGroup(
-                page.id(),
+                page.get().id(),
                 TestConstants.TEST_GROUP_TITLE,
                 TestConstants.TEST_GROUP_DESCRIPTION,
                 Arrays.asList(componentA.get().id(), componentB.get().id())
         );
-        page = resource.statusPage().sync(page);
-        assertTrue(page.groups().stream().filter(i -> i.name().equals(TestConstants.TEST_GROUP_TITLE)).findAny().isPresent());
+        Page syncPage = resource.statusPage().sync(page.get());
+        assertNonEmpty(syncPage.groups().stream().filter(i -> TestConstants.TEST_GROUP_TITLE.equals(i.name())).findAny());
+        assertNonEmpty(syncPage.groups().stream().filter(i -> TestConstants.TEST_GROUP_DESCRIPTION.equals(i.description())).findAny());
     }
 
     @Test
     public void B_testListGroups() {
-        Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
+        Optional<Page> page = resource.statusPage().getPageByTitle(TEST_PAGE_NAME, true);
+        assertNonEmpty(page);
 
-        List<Group> groups = resource.statusPage().groups(page);
+        List<Group> groups = resource.statusPage().groups(page.get());
         assertTrue(groups.size() > 0);
 
         Optional<Group> found = groups.stream().filter(g -> g.name().equals(TestConstants.TEST_GROUP_TITLE)).findAny();
@@ -76,28 +83,31 @@ public class GroupTest {
 
     @Test
     public void C_testGetGroup() {
-        Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
+        Optional<Page> page = resource.statusPage().getPageByTitle(TEST_PAGE_NAME, true);
+        assertNonEmpty(page);
 
-        List<Group> groups = resource.statusPage().groups(page);
+        List<Group> groups = resource.statusPage().groups(page.get());
         assertTrue(groups.size() > 0);
         Optional<Group> found = groups.stream().filter(g -> g.name().equals(TestConstants.TEST_GROUP_TITLE)).findAny();
         assertTrue(found.isPresent());
 
-        Optional<Group> group = resource.statusPage().getGroup(page.id(), found.get().id(), true);
+        Optional<Group> group = resource.statusPage().getGroup(page.get().id(), found.get().id(), true);
         assertTrue(group.isPresent());
+        assertNonEmpty(group.get().componentObjects().stream().map(Component::name).filter(c -> c.equals(TEST_COMPONENT_A_TITLE)).findAny());
+        assertNonEmpty(group.get().componentObjects().stream().map(Component::name).filter(c -> c.equals(TEST_COMPONENT_B_TITLE)).findAny());
     }
 
     @Test
     public void D_testUpdateGroup() {
-        Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
-        List<Group> groups = resource.statusPage().groups(page);
+        Optional<Page> page = resource.statusPage().getPageByTitle(TEST_PAGE_NAME, true);
+        assertNonEmpty(page);
+        List<Group> groups = resource.statusPage().groups(page.get());
         assertTrue(groups.size() > 0);
 
         Optional<Group> found = groups.stream().filter(g -> g.name().equals(TestConstants.TEST_GROUP_TITLE)).findAny();
-        found = resource.statusPage().getGroup(page.id(), found.get().id(), true);
+        found = resource.statusPage().getGroup(page.get().id(), found.get().id(), true);
         assertTrue(found.isPresent());
 
-        found.get().componentIds().remove(0);
         found.get().components().remove(0);
         Optional<Group> updated = resource.statusPage().updateGroup(found.get());
         assertTrue(updated.isPresent());
@@ -105,24 +115,26 @@ public class GroupTest {
         Group group = updated.get();
         resource.statusPage().sync(group);
 
-        assertEquals(1, group.componentIds().size());
-        assertTrue(Arrays.asList(componentA.get().id(), componentB.get().id()).contains(group.componentIds().get(0)));
+        assertEquals(1, group.components().size());
+        assertTrue(Arrays.asList(componentA.get().id(), componentB.get().id()).contains(group.components().get(0)));
     }
 
     @Test
     public void E_testDeleteGroup() {
-        Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
-        List<Group> groups = resource.statusPage().groups(page);
+        Optional<Page> page = resource.statusPage().getPageByTitle(TEST_PAGE_NAME, true);
+        assertNonEmpty(page);
+
+        List<Group> groups = resource.statusPage().groups(page.get());
         assertTrue(groups.size() > 0);
 
         Optional<Group> found = groups.stream().filter(g -> g.name().equals(TestConstants.TEST_GROUP_TITLE)).findAny();
-        found = resource.statusPage().getGroup(page.id(), found.get().id(), true);
+        found = resource.statusPage().getGroup(page.get().id(), found.get().id(), true);
         assertTrue(found.isPresent());
 
-        Optional<Group> removed = resource.statusPage().deleteGroup(page.id(), found.get().id());
+        Optional<Group> removed = resource.statusPage().deleteGroup(page.get().id(), found.get().id());
         assertTrue(removed.isPresent());
 
-        assertFalse(resource.statusPage().groups(page).stream().filter(g -> g.name().equals(TestConstants.TEST_GROUP_TITLE)).findAny().isPresent());
+        assertEmpty(resource.statusPage().groups(page.get()).stream().filter(g -> g.name().equals(TestConstants.TEST_GROUP_TITLE)).findAny());
     }
 
 }

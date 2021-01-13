@@ -1,6 +1,6 @@
 package ws.slink.statuspage;
 
-import kong.unirest.json.JSONObject;
+import com.google.gson.Gson;
 import lombok.NonNull;
 import ws.slink.statuspage.model.Component;
 import ws.slink.statuspage.model.Group;
@@ -10,6 +10,7 @@ import ws.slink.statuspage.type.ComponentStatus;
 import ws.slink.statuspage.type.IncidentSeverity;
 import ws.slink.statuspage.type.IncidentStatus;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -111,7 +112,7 @@ public class StatusPage {
     }
     public List<Page> pages(int pageSize, int pageNum) {
         return new StatusPageQuery(statusPageApi, Page.class)
-                .list("pages", "no pages found", pageSize, pageNum);
+            .list("pages", "no pages found", pageSize, pageNum);
     }
 
     public List<Group> groups(Page page) {
@@ -122,12 +123,12 @@ public class StatusPage {
     }
     private List<Group> groups(String pageId, int pageSize, int pageNum) {
         return new StatusPageQuery(statusPageApi, Group.class)
-                .list(
-                        "pages/" + pageId + "/component-groups",
-                        "no component groups found for '" + pageId + "'",
-                        pageSize,
-                        pageNum
-                );
+            .list(
+                "pages/" + pageId + "/component-groups",
+                "no component groups found for '" + pageId + "'",
+                pageSize,
+                pageNum
+            );
     }
 
     public List<Component> components(Page page) {
@@ -141,12 +142,12 @@ public class StatusPage {
     }
     public List<Component> components(String pageId, int pageSize, int pageNum) {
         return new StatusPageQuery(statusPageApi, Component.class)
-                .list(
-                        "pages/" + pageId + "/components",
-                        "no components found for page '" + pageId + "'",
-                        pageSize,
-                        pageNum
-                );
+            .list(
+                "pages/" + pageId + "/components",
+                "no components found for page '" + pageId + "'",
+                pageSize,
+                pageNum
+            );
     }
 
     public List<Component> groupComponents(Group group) {
@@ -156,18 +157,11 @@ public class StatusPage {
         return groupComponents(pageId, groupId, 0, 0);
     }
     private List<Component> groupComponents(String pageId, String groupId, int pageSize, int pageNum) {
-        return new StatusPageQuery(statusPageApi, Component.class)
-                .list(
-                        "pages/" + pageId + "/components",
-                        "no component found for page '" + pageId + "'",
-                        pageSize,
-                        pageNum
-                )
-                .stream()
-                .map(v -> (Component) v)
-                .filter(v -> null != v.groupId() && v.groupId().equals(groupId))
-                .collect(Collectors.toList())
-                ;
+        return components(pageId, pageSize, pageNum)
+            .stream()
+            .filter(v -> null != v.groupId() && v.groupId().equals(groupId))
+            .collect(Collectors.toList())
+        ;
     }
 
     public List<Incident> incidents(Page page) {
@@ -209,6 +203,15 @@ public class StatusPage {
     public Optional<Page> getPage(String pageId, boolean full) {
         Optional<Page> page = new StatusPageQuery(statusPageApi, Page.class)
                 .get("pages/" + pageId, "no page found with id " + pageId);
+        if (full)
+            page.ifPresent(this::syncPage);
+        return page;
+    }
+    public Optional<Page> getPageByTitle(String pageTitle) {
+        return getPageByTitle(pageTitle, false);
+    }
+    public Optional<Page> getPageByTitle(String pageTitle, boolean full) {
+        Optional<Page> page = pages().stream().filter(p -> null != p.name()).filter(p -> p.name().equals(pageTitle)).findAny();
         if (full)
             page.ifPresent(this::syncPage);
         return page;
@@ -328,7 +331,7 @@ public class StatusPage {
             group.pageId(),
             group.name(),
             group.description(),
-            group.componentIds()
+            group.components()
         );
     }
     public Optional<Group> createGroup(String pageId, String title, String description) {
@@ -393,7 +396,8 @@ public class StatusPage {
     }
     public Optional<Group> updateGroup(String pageId, Group group, List<String> componentIds) {
         if (null != componentIds)
-            group.componentIds(componentIds);
+            group.components(componentIds);
+        System.out.println("----- updateGroup: " + group);
         return new StatusPageQuery(statusPageApi, Group.class)
             .put(
                 "pages/" + pageId + "/component-groups/" + group.id(),
@@ -457,8 +461,8 @@ public class StatusPage {
         ;
     }
     private void syncGroup(@NonNull Group group) {
-        group.components(groupComponents(group));
-        group.componentIds(group.components().stream().map(Component::id).collect(Collectors.toList()));
+        group.componentObjects(groupComponents(group));
+        group.components(group.componentObjects().stream().map(Component::id).collect(Collectors.toList()));
     }
 
     private String incidentRequestJson(Incident incident, String body) {
@@ -472,44 +476,6 @@ public class StatusPage {
             incident.metadata(),
             incident.components()
         );
-        /*
-        JSONObject json = new JSONObject();
-
-        if (null != incident.id() && !incident.id().isEmpty())
-            json.put("id", incident.id());
-
-        if (null != incident.name() && !incident.name().isEmpty())
-            json.put("name", incident.name());
-
-        if (null != incident.status())
-            json.put("status", incident.status().value());
-
-        if (null != incident.impact())
-            json.put("impact_override", incident.impact().value());
-        else
-            json.put("impact_override", IncidentSeverity.NONE.value());
-
-        if (null != incident.metadata() && !incident.metadata().isEmpty())
-            json.put("metadata", incident.metadata());
-
-        json.put("deliver_notifications", true);
-
-        if (null != incident.page() && null != incident.page().id() && !incident.page().id().isEmpty())
-            json.put("page_id", incident.page().id());
-        else if (null != incident.pageId() && !incident.pageId().isEmpty())
-            json.put("page_id", incident.pageId());
-
-        if (null != incident.components())
-            json.put("component_ids", incident.components().stream().map(v -> v.id()).collect(Collectors.toList()));
-
-        if (null != incident.components())
-            json.put("components", incident.components().stream().collect(Collectors.toMap(Component::id, c -> c.status().value())));
-
-        if (null != body && !body.isEmpty())
-            json.put("body", body);
-
-        return new JSONObject().put("incident", json).toString();
-         */
     }
     private String incidentRequestJson(
         String id,
@@ -521,37 +487,29 @@ public class StatusPage {
         Map<String, Object> meta,
         List<Component> components
     ) {
-        JSONObject json = new JSONObject();
-
+        Map<String, Object> map = new HashMap<>();
         if (null != pageId && pageId.isEmpty())
-            json.put("page_id", pageId);
-
+            map.put("page_id", pageId);
         if (null != id && !id.isEmpty())
-            json.put("id", id);
-
+            map.put("id", id);
         if (null != title && !title.isEmpty())
-            json.put("name", title);
-
+            map.put("name", title);
         if (null != body && !body.isEmpty())
-            json.put("body", body);
-
+            map.put("body", body);
         if (null != status)
-            json.put("status", status.value());
-
+            map.put("status", status.value());
         if (null != severity)
-            json.put("impact_override", severity.value());
+            map.put("impact_override", severity.value());
         else
-            json.put("impact_override", IncidentSeverity.NONE.value());
-
+            map.put("impact_override", IncidentSeverity.NONE.value());
         if (null != meta && !meta.isEmpty())
-            json.put("metadata", meta);
-
+            map.put("metadata", meta);
         if (null != components && !components.isEmpty()) {
-            json.put("component_ids", components.stream().map(Component::id).collect(Collectors.toList()));
-            json.put("components", components.stream().collect(Collectors.toMap(Component::id, c -> c.status().value())));
+            map.put("component_ids", components.stream().map(Component::id).collect(Collectors.toList()));
+            map.put("components", components.stream().collect(Collectors.toMap(Component::id, c -> c.status().value())));
         }
 
-        json.put("deliver_notifications", true);
+        map.put("deliver_notifications", true);
 
 /*
         if (null != incident.components())
@@ -560,8 +518,9 @@ public class StatusPage {
         if (null != incident.components())
             json.put("components", incident.components().stream().collect(Collectors.toMap(Component::id, c -> c.status().value())));
 */
-
-        return new JSONObject().put("incident", json).toString();
+        Map<String, Object> wrapper = new HashMap<>();
+        wrapper.put("incident", map);
+        return new Gson().toJson(wrapper);
     }
 
 
@@ -589,45 +548,38 @@ public class StatusPage {
             Boolean showcase,
             String startDate
     ) {
-        JSONObject json = new JSONObject();
+        Map<String, Object> map = new HashMap<>();
 
         if (null != groupId && groupId.isEmpty())
-            json.put("group_id", groupId);
-
+            map.put("group_id", groupId);
 //        if (null != pageId && pageId.isEmpty())
 //            json.put("page_id", pageId);
-
 //        if (null != id && !id.isEmpty())
 //            json.put("id", id);
-
         if (null != title && !title.isEmpty())
-            json.put("name", title);
-
+            map.put("name", title);
         if (null != description && !description.isEmpty())
-            json.put("description", description);
-
+            map.put("description", description);
         if (null != status)
-            json.put("status", status.value());
+            map.put("status", status.value());
         else
-            json.put("status", ComponentStatus.OPERATIONAL.value());
-
+            map.put("status", ComponentStatus.OPERATIONAL.value());
         if (null != onlyShowIfDegraded)
-            json.put("only_show_if_degraded", onlyShowIfDegraded);
-
+            map.put("only_show_if_degraded", onlyShowIfDegraded);
         if (null != showcase)
-            json.put("showcase", showcase);
-
+            map.put("showcase", showcase);
         if (null != startDate)
-            json.put("start_date", startDate);
-
-        return new JSONObject().put("component", json).toString();
+            map.put("start_date", startDate);
+        Map<String, Object> wrapper = new HashMap<>();
+        wrapper.put("component", map);
+        return new Gson().toJson(wrapper);
     }
 
     private String groupRequestJson(Group group) {
         return groupRequestJson(
             group.name(),
             group.description(),
-            group.componentIds()
+            group.components()
         );
     }
     private String groupRequestJson(
@@ -635,20 +587,17 @@ public class StatusPage {
             String description,
             List<String> componentIds
     ) {
-        JSONObject json = new JSONObject();
-
+        Map<String, Object> map = new HashMap<>();
         if (null != title && !title.isEmpty())
-            json.put("name", title);
-
+            map.put("name", title);
         if (null != componentIds && !componentIds.isEmpty())
-            json.put("components", componentIds);
-
-        JSONObject result = new JSONObject();
+            map.put("components", componentIds);
         if (null != description && !description.isEmpty())
-            result.put("description", description);
-        result.put("component_group", json);
+            map.put("description", description);
+        Map<String, Object> wrapper = new HashMap<>();
+        wrapper.put("component_group", map);
 
-        return result.toString();
+        return new Gson().toJson(wrapper);
     }
 
 }

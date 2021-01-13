@@ -1,18 +1,26 @@
 package ws.slink.statuspage.type;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import ws.slink.statuspage.type.converter.ComponentStatusDeserializer;
-import ws.slink.statuspage.type.converter.IncidentStatusDeserializer;
+import com.google.gson.annotations.SerializedName;
 
-@JsonDeserialize(using = ComponentStatusDeserializer.class)
 public enum ComponentStatus {
 
-     OPERATIONAL("operational")
-    ,MAINTENANCE("under_maintenance")
-    ,DEGRADED("degraded_performance")
-    ,PARTIAL_OUTAGE("partial_outage")
-    ,MAJOR_OUTAGE("major_outage")
-    ,NONE("")
+     @SerializedName("operational")
+     OPERATIONAL("operational"),
+
+     @SerializedName("under_maintenance")
+     MAINTENANCE("under_maintenance"),
+
+     @SerializedName("degraded_performance")
+     DEGRADED("degraded_performance"),
+
+     @SerializedName("partial_outage")
+     PARTIAL_OUTAGE("partial_outage"),
+
+     @SerializedName("major_outage")
+     MAJOR_OUTAGE("major_outage"),
+
+     @SerializedName("")
+     NONE("")
     ;
 
     private String value;

@@ -1,6 +1,6 @@
 package ws.slink.statuspage.model;
 
-import com.fasterxml.jackson.annotation.*;
+import com.google.gson.annotations.SerializedName;
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.Accessors;
@@ -13,9 +13,6 @@ import java.util.*;
 @Data
 @Accessors(fluent = true)
 @ToString
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonPropertyOrder({"id", "name"})
-@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
 public class Incident {
 
     private String id;
@@ -25,37 +22,33 @@ public class Incident {
 
     private IncidentSeverity impact;
 
-    @JsonProperty("created_at")
+    @SerializedName("created_at")
     private LocalDateTime createdAt;
 
-    @JsonProperty("updated_at")
+    @SerializedName("updated_at")
     private LocalDateTime updatedAt;
 
-    @JsonProperty("started_at")
+    @SerializedName("started_at")
     private LocalDateTime startedAt;
 
-    @JsonProperty("resolved_at")
+    @SerializedName("resolved_at")
     private LocalDateTime resolvedAt;
 
-    @JsonProperty("monitoring_at")
+    @SerializedName("monitoring_at")
     private LocalDateTime monitoringAt;
 
-    @JsonProperty("scheduled_for")
+    @SerializedName("scheduled_for")
     private LocalDateTime scheduledFor;
 
-    @JsonProperty("scheduled_until")
+    @SerializedName("scheduled_until")
     private LocalDateTime scheduledUntil;
 
-    @JsonProperty("page_id")
+    @SerializedName("page_id")
     private String pageId;
 
-    @JsonIgnore
     private Page page;
 
     private Map<String, Object> metadata = new HashMap<>();
-
-//    @JsonIgnore
-//    private List<Group> groups;
 
     private List<Component> components = new ArrayList<>();
     public List<Component> components() {
@@ -65,7 +58,7 @@ public class Incident {
             return components;
     }
 
-    @JsonProperty("incident_updates")
+    @SerializedName("incident_updates")
     private List<IncidentUpdate> updates = new ArrayList<>();
     public List<IncidentUpdate> updates() {
         if (null == updates) {

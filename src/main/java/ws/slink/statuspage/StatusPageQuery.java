@@ -1,22 +1,33 @@
 package ws.slink.statuspage;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import kong.unirest.HttpResponse;
-import kong.unirest.HttpStatus;
-import kong.unirest.JsonNode;
+import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
 import ws.slink.statuspage.error.JsonParseException;
 import ws.slink.statuspage.error.NoDataFoundException;
 import ws.slink.statuspage.error.ServiceCallException;
-import ws.slink.statuspage.type.HttpMethod;
+import ws.slink.statuspage.http.HttpMethod;
+import ws.slink.statuspage.http.HttpResponse;
+import ws.slink.statuspage.http.HttpStatus;
 
+import java.lang.reflect.Type;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-class StatusPageQuery {
+class StatusPageQuery<T> {
 
     private StatusPageApi statusPageApi;
-    private Class clazz;
+    private final Class<T> clazz;
+
+    private static final Gson gson = new GsonBuilder()
+        .registerTypeAdapter(LocalDateTime.class, new JsonDeserializer<LocalDateTime>() {
+            @Override
+            public LocalDateTime deserialize(JsonElement json, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+                return LocalDateTime.parse(json.getAsJsonPrimitive().toString().replaceAll("\"", ""), DateTimeFormatter.ISO_DATE_TIME);
+            }
+        })
+        .create()
+    ;
 
     public StatusPageQuery(StatusPageApi statusPageApi, Class clazz) {
         this.statusPageApi = statusPageApi;
@@ -43,12 +54,13 @@ class StatusPageQuery {
                 queryParams.put("page", pageNum);
                 queryParams.put("per_page", pageSize);
             }
-            HttpResponse<? extends Object> response = statusPageApi.apiCall(url, HttpMethod.GET, null, queryParams, null);
-            if (response.getStatus() == HttpStatus.OK) {
-                JsonNode node = (JsonNode) response.getBody();
-                ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
-                JavaType type = objectMapper.getTypeFactory().constructCollectionType(List.class, clazz); // constructParametricType
-                return objectMapper.readValue(node.toString(), type);
+
+            HttpResponse response = statusPageApi.apiCall(url, HttpMethod.GET, null, queryParams, null);
+
+            if (response.status() == HttpStatus.OK) {
+                Type collectionType = TypeToken.getParameterized(List.class, clazz).getType();
+                List<T> result = gson.fromJson(response.getBodyAsString(), collectionType);
+                return result;
             } else {
                 if (statusPageApi.bridgeErrors()) {
                     throw new NoDataFoundException(notFoundMessage);
@@ -56,7 +68,7 @@ class StatusPageQuery {
             }
         } catch (NoDataFoundException e) {
             throw e;
-        } catch (JsonProcessingException e) {
+        } catch (JsonSyntaxException e) {
             if (statusPageApi.bridgeErrors()) {
                 throw new JsonParseException(e.getMessage()).setCause(e);
             } else {
@@ -76,52 +88,51 @@ class StatusPageQuery {
         return get(url, "");
     }
     <T> Optional<T> get(String url, String notFoundMessage) {
-        return performRequest(url, HttpMethod.GET, Arrays.asList(HttpStatus.OK), notFoundMessage, null);
+        return performRequest(url, HttpMethod.GET, Arrays.asList(HttpStatus.OK.code()), notFoundMessage, null);
     }
 
     <T> Optional<T> post(String url, String jsonBody) {
         return post(url, "", jsonBody);
     }
     <T> Optional<T> post(String url, String errorMessage, String jsonBody) {
-        return performRequest(url, HttpMethod.POST, Arrays.asList(HttpStatus.CREATED), errorMessage, jsonBody);
+        return performRequest(url, HttpMethod.POST, Arrays.asList(HttpStatus.CREATED.code()), errorMessage, jsonBody);
     }
 
     <T> Optional<T> put(String url, String jsonBody) {
         return put(url, "", jsonBody);
     }
     <T> Optional<T> put(String url, String errorMessage, String jsonBody) {
-        return performRequest(url, HttpMethod.PUT, Arrays.asList(HttpStatus.OK), errorMessage, jsonBody);
+        return performRequest(url, HttpMethod.PUT, Arrays.asList(HttpStatus.OK.code()), errorMessage, jsonBody);
     }
 
     <T> Optional<T> delete(String url) {
         return delete(url, "");
     }
     <T> Optional<T> delete(String url, String errorMessage) {
-        return performRequest(url, HttpMethod.DELETE, Arrays.asList(HttpStatus.NO_CONTENT, HttpStatus.OK), errorMessage, null);
+        return performRequest(url, HttpMethod.DELETE, Arrays.asList(HttpStatus.NO_CONTENT.code(), HttpStatus.OK.code()), errorMessage, null);
     }
 
     private <T> Optional<T> performRequest(String url, HttpMethod method, List<Integer> okResultCodes, String errorMessage, String jsonBody) {
         try {
             Map<String, String> headers = new HashMap<>();
             headers.put("Content-Type", "application/json");
-            HttpResponse<? extends Object> response = statusPageApi.apiCall(url, method, headers, null, jsonBody);
-            if (okResultCodes.contains(response.getStatus())) {
-                JsonNode node = (JsonNode) response.getBody();
-                ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
-                JavaType type = objectMapper.getTypeFactory().constructType(clazz); // constructParametricType
-                return Optional.ofNullable(objectMapper.readValue(node.toString(), type));
+            HttpResponse response = statusPageApi.apiCall(url, method, headers, null, jsonBody);
+            if (okResultCodes.contains(response.status().code())) {
+                Object result = gson.fromJson(response.getBodyAsString(), clazz);
+                return (Optional<T>) Optional.ofNullable(result);
             } else {
                 if (statusPageApi.bridgeErrors()) {
-                    throw new RuntimeException(errorMessage + ": service answered " + response.getStatus() + " (" + response.getStatusText() + ")");
+                    throw new RuntimeException(errorMessage + ": service answered " + response.status().code() + " (" + response.status().message() + ")");
                 }
             }
-        } catch (JsonProcessingException e) {
+        } catch (JsonSyntaxException e) {
             if (statusPageApi.bridgeErrors()) {
                 throw new JsonParseException(e.getMessage()).setCause(e);
             } else {
                 e.printStackTrace();
             }
         } catch (Exception e) {
+            e.printStackTrace();
             if (statusPageApi.bridgeErrors()) {
                 throw new ServiceCallException(e.getMessage()).setCause(e);
             } else {

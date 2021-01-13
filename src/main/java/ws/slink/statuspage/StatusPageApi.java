@@ -1,9 +1,9 @@
 package ws.slink.statuspage;
 
-import kong.unirest.*;
 import ws.slink.statuspage.error.ServiceCallException;
-import ws.slink.statuspage.interceptor.LoggingInterceptor;
-import ws.slink.statuspage.type.HttpMethod;
+import ws.slink.statuspage.http.HttpClient;
+import ws.slink.statuspage.http.HttpResponse;
+import ws.slink.statuspage.http.HttpMethod;
 
 import java.time.Instant;
 import java.util.Map;
@@ -54,9 +54,6 @@ class StatusPageApi {
     }
 
     private void init() {
-        if ("true".equalsIgnoreCase(System.getenv("STATUSPAGE_LOG_QUERIES"))) {
-            Unirest.config().interceptor(LoggingInterceptor.instance());
-        }
     }
 
     public StatusPageApi rateLimit(boolean value) {
@@ -81,60 +78,61 @@ class StatusPageApi {
         return this.bridgeErrors.get();
     }
 
-    // http://kong.github.io/unirest-java/
-    HttpResponse<? extends Object> apiCall(String path, HttpMethod method, Map<String, String> headers, Map<String, Object> queryParams, Object body) {
+    HttpResponse apiCall(String path, HttpMethod method, Map<String, String> headers, Map<String, Object> queryParams, Object body) {
         if (rateLimitEnabled.get())
             delay(); // rate limit API usage
+        if (method == HttpMethod.DELETE)
+            delay(); // rate limit API usage (as we're performing two calls for delete)
         try {
             switch(method) {
                 case GET: {
-                    return Unirest
-                        .get(generateApiUrl(path))
+                    return new HttpClient(generateApiUrl(path))
                         .headers(headers)
                         .header(authHeaderKey(), authHeaderValue())
-                        .queryString(queryParams)
-                        .asJson();
+                        .header(contentHeaderKey(), contentHeaderValue())
+                        .header(acceptHeaderKey(), acceptHeaderValue())
+                        .queryParams(queryParams)
+                        .get();
                 }
                 case POST: {
-                    return Unirest
-                        .post(generateApiUrl(path))
+                    return new HttpClient(generateApiUrl(path))
                         .headers(headers)
                         .header(authHeaderKey(), authHeaderValue())
-                        .body(body)
-                        .asJson();
+                        .header(contentHeaderKey(), contentHeaderValue())
+                        .header(acceptHeaderKey(), acceptHeaderValue())
+                        .post(body);
                 }
                 case PUT: {
-                    return Unirest
-                        .put(generateApiUrl(path))
+                    return new HttpClient(generateApiUrl(path))
                         .headers(headers)
                         .header(authHeaderKey(), authHeaderValue())
-                        .body(body)
-                        .asJson();
+                        .header(contentHeaderKey(), contentHeaderValue())
+                        .header(acceptHeaderKey(), acceptHeaderValue())
+                        .put(body);
                 }
                 case PATCH: {
-                    return Unirest
-                        .patch(generateApiUrl(path))
+                    return new HttpClient(generateApiUrl(path))
                         .headers(headers)
                         .header(authHeaderKey(), authHeaderValue())
-                        .body(body)
-                        .asJson();
+                        .header(contentHeaderKey(), contentHeaderValue())
+                        .header(acceptHeaderKey(), acceptHeaderValue())
+                        .patch(body);
                 }
                 case DELETE: {
-                    return Unirest
-                        .delete(generateApiUrl(path))
+                    return new HttpClient(generateApiUrl(path))
                         .headers(headers)
                         .header(authHeaderKey(), authHeaderValue())
-                        .body(body)
-                        .asJson();
+                        .header(contentHeaderKey(), contentHeaderValue())
+                        .header(acceptHeaderKey(), acceptHeaderValue())
+                        .delete();
                 }
                 default: {
                     throw new IllegalArgumentException("unsupported method requested: " + method);
                 }
             }
-        } catch (UnirestException e) {
-            throw new ServiceCallException("error requesting status page service: "
-                    + e.getMessage()
-            ).setCause(e);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ServiceCallException("error requesting status page service: " + e.getMessage()).setCause(e);
         }
     }
 
@@ -144,6 +142,19 @@ class StatusPageApi {
     private String authHeaderValue() {
         return "OAuth " + apiToken;
     }
+    private String contentHeaderKey() {
+        return "Content-Type";
+    }
+    private String contentHeaderValue() {
+        return "application/json; utf-8";
+    }
+    private String acceptHeaderKey() {
+        return "Accept";
+    }
+    private String acceptHeaderValue() {
+        return "application/json";
+    }
+
     private String generateApiUrl(String path) {
         if (baseUrl.endsWith("/") && !path.startsWith("/"))
             return baseUrl + path;

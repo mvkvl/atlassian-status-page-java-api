@@ -17,6 +17,7 @@ import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static ws.slink.test.statuspage.config.TestConstants.TEST_PAGE_NAME;
 import static ws.slink.test.statuspage.tools.AssertTools.assertEmpty;
 import static ws.slink.test.statuspage.tools.AssertTools.assertNonEmpty;
 
@@ -28,29 +29,32 @@ public class IncidentTest {
     public static StatusPageTestResource resource = StatusPageTestResource.get();
 
     @Test public void A_testCreateIncident() {
-        Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
+        Optional<Page> page = resource.statusPage().getPageByTitle(TEST_PAGE_NAME, true);
+        assertNonEmpty(page);
         resource.statusPage().createIncident(
-            page.id(),
+            page.get().id(),
             resource.getIncidentTitle(),
             "something's happened... dealing with it",
             IncidentSeverity.MAJOR
         );//.ifPresentOrElse(System.out::println, () -> System.out.println("could not create incident"));
-        page = resource.statusPage().sync(page);
-        assertTrue(page.incidents().stream().filter(i -> i.name().endsWith(resource.getIncidentTitle())).findAny().isPresent());
+        Page syncPage = resource.statusPage().sync(page.get());
+        assertNonEmpty(syncPage.incidents().stream().filter(i -> i.name().endsWith(resource.getIncidentTitle())).findAny());
     }
 
     @Test public void B_testListIncidents() {
-        Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
-        List<Incident> incidents = resource.statusPage().incidents(page);
+        Optional<Page> page = resource.statusPage().getPageByTitle(TEST_PAGE_NAME, true);
+        assertNonEmpty(page);
+        List<Incident> incidents = resource.statusPage().incidents(page.get());
         assertEquals(1, incidents.size());
-        assertTrue(incidents.stream().filter(i -> i.name().endsWith(resource.getIncidentTitle())).findAny().isPresent());
+        assertNonEmpty(incidents.stream().filter(i -> i.name().endsWith(resource.getIncidentTitle())).findAny());
     }
 
     @Test public void C_testGetIncident() {
-        Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
-        assertEquals(1, page.incidents().size());
+        Optional<Page> page = resource.statusPage().getPageByTitle(TEST_PAGE_NAME, true);
+        assertNonEmpty(page);
+        assertEquals(1, page.get().incidents().size());
 
-        Optional<Incident> incident = resource.statusPage().getIncident(page.id(), page.incidents().get(0).id());
+        Optional<Incident> incident = resource.statusPage().getIncident(page.get().id(), page.get().incidents().get(0).id());
         assertTrue(incident.isPresent());
         assertEquals(resource.getIncidentTitle(), incident.get().name());
         assertEquals(IncidentSeverity.MAJOR, incident.get().impact());
@@ -58,10 +62,11 @@ public class IncidentTest {
     }
 
     @Test public void D_testUpdateIncident() {
-        Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
-        assertEquals(1, page.incidents().size());
+        Optional<Page> page = resource.statusPage().getPageByTitle(TEST_PAGE_NAME, true);
+        assertNonEmpty(page);
+        assertEquals(1, page.get().incidents().size());
 
-        Optional<Incident> incident = resource.statusPage().getIncident(page.id(), page.incidents().get(0).id());
+        Optional<Incident> incident = resource.statusPage().getIncident(page.get().id(), page.get().incidents().get(0).id());
         assertTrue(incident.isPresent());
 
         incident.get().impact(IncidentSeverity.MINOR);
@@ -71,8 +76,8 @@ public class IncidentTest {
         assertEquals(IncidentSeverity.MINOR, incident.get().impact());
         assertEquals(IncidentStatus.MONITORING, incident.get().status());
 
-        page = resource.statusPage().sync(page);
-        Optional<Incident> reloaded = resource.statusPage().getIncident(page.id(), page.incidents().get(0).id());
+        Page syncPage = resource.statusPage().sync(page.get());
+        Optional<Incident> reloaded = resource.statusPage().getIncident(page.get().id(), page.get().incidents().get(0).id());
         assertTrue(reloaded.isPresent());
         assertEquals(resource.getIncidentTitle(), incident.get().name());
         assertEquals(IncidentSeverity.MINOR, reloaded.get().impact());
@@ -80,26 +85,27 @@ public class IncidentTest {
     }
 
     @Test public void E_testDeleteIncident() {
-//        resource.getStatusPage().pages().get(0).id();
-        Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
-        assertEquals(1, page.incidents().size());
+        Optional<Page> page = resource.statusPage().getPageByTitle(TEST_PAGE_NAME, true);
+        assertNonEmpty(page);
+        assertEquals(1, page.get().incidents().size());
 
-        Optional<Incident> incident = resource.statusPage().getIncident(page.id(), page.incidents().get(0).id());
+        Optional<Incident> incident = resource.statusPage().getIncident(page.get().id(), page.get().incidents().get(0).id());
         assertTrue(incident.isPresent());
 
-        Optional<Incident> removed = resource.statusPage().deleteIncident(page.id(), incident.get().id());
+        Optional<Incident> removed = resource.statusPage().deleteIncident(page.get().id(), incident.get().id());
         assertTrue(removed.isPresent());
 
-        page = resource.statusPage().sync(page);
-        assertEquals(0, page.incidents().size());
+        Page syncPage = resource.statusPage().sync(page.get());
+        assertEquals(0, syncPage.incidents().size());
     }
 
-//    @Ignore
+    @Ignore
     @Test public void F_testUpdateIncidentWithComponents() {
-        Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
+        Optional<Page> page = resource.statusPage().getPageByTitle(TEST_PAGE_NAME, true);
+        assertNonEmpty(page);
 
         Optional<Component> componentA = resource.statusPage().createComponent(
-                page.id(),
+                page.get().id(),
                 TestConstants.TEST_COMPONENT_A_TITLE,
                 TestConstants.TEST_COMPONENT_A_DESCRIPTION,
                 true
@@ -108,7 +114,7 @@ public class IncidentTest {
         componentA.get().status(ComponentStatus.DEGRADED);
 
         Optional<Component> componentB = resource.statusPage().createComponent(
-                page.id(),
+                page.get().id(),
                 TestConstants.TEST_COMPONENT_B_TITLE,
                 TestConstants.TEST_COMPONENT_B_DESCRIPTION,
                 true
@@ -122,7 +128,7 @@ public class IncidentTest {
         meta.put("jira", jira);
 
         resource.statusPage().createIncident(
-            page.id(),
+            page.get().id(),
             resource.getIncidentTitle(),
             "something's happened... dealing with it",
             IncidentSeverity.MAJOR,
@@ -130,8 +136,8 @@ public class IncidentTest {
             Arrays.asList(componentA.get(), componentB.get())
         );//.ifPresentOrElse(System.out::println, () -> System.out.println("could not create incident"));
 
-        page = resource.statusPage().sync(page);
-        Optional<Incident> incident = resource.statusPage().getIncident(page.id(), page.incidents().get(0).id());
+        Page syncPage = resource.statusPage().sync(page.get());
+        Optional<Incident> incident = resource.statusPage().getIncident(syncPage.id(), syncPage.incidents().get(0).id());
         assertTrue(incident.isPresent());
 
 //        System.err.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ WAITING ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
@@ -150,8 +156,8 @@ public class IncidentTest {
         assertEquals(IncidentSeverity.MINOR, incident.get().impact());
         assertEquals(IncidentStatus.MONITORING, incident.get().status());
 
-        page = resource.statusPage().sync(page);
-        Optional<Incident> reloaded = resource.statusPage().getIncident(page.id(), page.incidents().get(0).id());
+        syncPage = resource.statusPage().sync(syncPage);
+        Optional<Incident> reloaded = resource.statusPage().getIncident(syncPage.id(), syncPage.incidents().get(0).id());
 
         assertTrue(reloaded.isPresent());
         assertEquals(resource.getIncidentTitle(), reloaded.get().name());
@@ -169,31 +175,32 @@ public class IncidentTest {
 //            e.printStackTrace();
 //        }
 
-        componentA = page.components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findAny();
+        componentA = syncPage.components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findAny();
         assertNonEmpty(componentA);
         resource.statusPage().deleteComponent(componentA.get());
 
-        componentB = page.components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_B_TITLE)).findAny();
+        componentB = syncPage.components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_B_TITLE)).findAny();
         assertNonEmpty(componentB);
         resource.statusPage().deleteComponent(componentB.get());
 
-        page = resource.statusPage().sync(page);
-        assertEmpty(page.components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findAny());
-        assertEmpty(page.components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_B_TITLE)).findAny());
+        syncPage = resource.statusPage().sync(syncPage);
+        assertEmpty(syncPage.components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findAny());
+        assertEmpty(syncPage.components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_B_TITLE)).findAny());
 
-        Optional<Incident> removed = resource.statusPage().deleteIncident(page.id(), incident.get().id());
+        Optional<Incident> removed = resource.statusPage().deleteIncident(syncPage.id(), incident.get().id());
         assertTrue(removed.isPresent());
 
-        page = resource.statusPage().sync(page);
-        assertEmpty(page.incidents());
+        syncPage = resource.statusPage().sync(syncPage);
+        assertEmpty(syncPage.incidents());
     }
 
-//    @Ignore
+    @Ignore
     @Test public void G_testIncidentLifecycleWithComponents() {
-        Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
+        Optional<Page> page = resource.statusPage().getPageByTitle(TEST_PAGE_NAME, true);
+        assertNonEmpty(page);
 
         Optional<Component> componentA = resource.statusPage().createComponent(
-                page.id(),
+                page.get().id(),
                 TestConstants.TEST_COMPONENT_A_TITLE,
                 TestConstants.TEST_COMPONENT_A_DESCRIPTION,
                 true
@@ -202,7 +209,7 @@ public class IncidentTest {
         componentA.get().status(ComponentStatus.DEGRADED);
 
         Optional<Component> componentB = resource.statusPage().createComponent(
-                page.id(),
+                page.get().id(),
                 TestConstants.TEST_COMPONENT_B_TITLE,
                 TestConstants.TEST_COMPONENT_B_DESCRIPTION,
                 true
@@ -216,14 +223,14 @@ public class IncidentTest {
         meta.put("jira", jira);
 
         resource.statusPage().createIncident(
-                page.id(),
+                page.get().id(),
                 resource.getIncidentTitle(),
                 "something's happened... dealing with it",
                 IncidentSeverity.MAJOR
         );//.ifPresentOrElse(System.out::println, () -> System.out.println("could not create incident"));
 
-        page = resource.statusPage().sync(page);
-        Optional<Incident> incident = resource.statusPage().getIncident(page.id(), page.incidents().get(0).id());
+        Page syncPage = resource.statusPage().sync(page.get());
+        Optional<Incident> incident = resource.statusPage().getIncident(syncPage.id(), syncPage.incidents().get(0).id());
         assertTrue(incident.isPresent());
 
 //        System.err.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ WAITING ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
@@ -242,8 +249,8 @@ public class IncidentTest {
         assertEquals(IncidentSeverity.MINOR, updated.get().impact());
         assertEquals(IncidentStatus.IDENTIFIED, updated.get().status());
 
-        page = resource.statusPage().sync(page);
-        Optional<Incident> reloaded = resource.statusPage().getIncident(page.id(), page.incidents().get(0).id());
+        syncPage = resource.statusPage().sync(syncPage);
+        Optional<Incident> reloaded = resource.statusPage().getIncident(syncPage.id(), syncPage.incidents().get(0).id());
 
         assertTrue(reloaded.isPresent());
         assertEquals(resource.getIncidentTitle(), reloaded.get().name());
@@ -261,8 +268,8 @@ public class IncidentTest {
 //            e.printStackTrace();
 //        }
 
-        page = resource.statusPage().sync(page);
-        incident = resource.statusPage().getIncident(page.id(), page.incidents().get(0).id());
+        syncPage = resource.statusPage().sync(syncPage);
+        incident = resource.statusPage().getIncident(syncPage.id(), syncPage.incidents().get(0).id());
         assertNonEmpty(incident);
         incident.get().components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findFirst().get().status(ComponentStatus.OPERATIONAL);
         incident.get().components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_B_TITLE)).findFirst().get().status(ComponentStatus.MAINTENANCE);
@@ -283,8 +290,8 @@ public class IncidentTest {
 //            e.printStackTrace();
 //        }
 
-        page = resource.statusPage().sync(page);
-        incident = resource.statusPage().getIncident(page.id(), page.incidents().get(0).id());
+        syncPage = resource.statusPage().sync(syncPage);
+        incident = resource.statusPage().getIncident(syncPage.id(), syncPage.incidents().get(0).id());
         assertNonEmpty(incident);
         incident.get().components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findFirst().get().status(ComponentStatus.OPERATIONAL);
         incident.get().components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_B_TITLE)).findFirst().get().status(ComponentStatus.OPERATIONAL);
@@ -304,23 +311,23 @@ public class IncidentTest {
 //            e.printStackTrace();
 //        }
 
-        componentA = page.components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findAny();
+        componentA = syncPage.components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findAny();
         assertNonEmpty(componentA);
         resource.statusPage().deleteComponent(componentA.get());
 
-        componentB = page.components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_B_TITLE)).findAny();
+        componentB = syncPage.components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_B_TITLE)).findAny();
         assertNonEmpty(componentB);
         resource.statusPage().deleteComponent(componentB.get());
 
-        page = resource.statusPage().sync(page);
-        assertEmpty(page.components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findAny());
-        assertEmpty(page.components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_B_TITLE)).findAny());
+        syncPage = resource.statusPage().sync(syncPage);
+        assertEmpty(syncPage.components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findAny());
+        assertEmpty(syncPage.components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_B_TITLE)).findAny());
 
-        Optional<Incident> removed = resource.statusPage().deleteIncident(page.id(), incident.get().id());
+        Optional<Incident> removed = resource.statusPage().deleteIncident(syncPage.id(), incident.get().id());
         assertTrue(removed.isPresent());
 
-        page = resource.statusPage().sync(page);
-        assertEmpty(page.incidents());
+        syncPage = resource.statusPage().sync(syncPage);
+        assertEmpty(syncPage.incidents());
     }
 
 }

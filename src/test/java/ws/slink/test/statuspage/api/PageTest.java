@@ -14,6 +14,7 @@ import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static ws.slink.test.statuspage.tools.AssertTools.assertNonEmpty;
 
 @Slf4j
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -25,21 +26,15 @@ public class PageTest {
     @Test public void A_testPagesList() {
         List<Page> pages = resource.statusPage().pages();
         assertTrue(pages.size() > 0);
-        assertEquals(1, pages.size());
-        assertEquals(TestConstants.TEST_PAGE_NAME, pages.get(0).name());
+        assertNonEmpty(pages.stream().filter(p -> null != p.name()).filter(p -> p.name().equals(TestConstants.TEST_PAGE_NAME)).findAny());
     }
 
     @Test public void B_testGetPage() {
-        Optional<Page> page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true);
-        assertTrue(page.isPresent());
+        Optional<Page> pg = resource.statusPage().pages().stream().filter(p -> null != p.name()).filter(p -> p.name().equals(TestConstants.TEST_PAGE_NAME)).findAny();
+        assertNonEmpty(pg);
+        Optional<Page> page = resource.statusPage().getPage(pg.get().id(), true);
+        assertNonEmpty(page);
         assertEquals(TestConstants.TEST_PAGE_NAME, page.get().name());
     }
 
 }
-
-
-/*
-    resource.run(() ->
-        resource.getStatusPage().pages().stream().forEach(System.out::println)
-    );
- */

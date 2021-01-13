@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.Assert.*;
+import static ws.slink.test.statuspage.config.TestConstants.TEST_PAGE_NAME;
+import static ws.slink.test.statuspage.tools.AssertTools.assertNonEmpty;
 
 @Slf4j
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -24,43 +26,47 @@ public class ComponentTest {
     public static StatusPageTestResource resource = StatusPageTestResource.get();
 
     @Test public void A_testCreateComponent() {
-        Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
+        Optional<Page> page = resource.statusPage().getPageByTitle(TEST_PAGE_NAME, true);
+        assertNonEmpty(page);
         resource.statusPage().createComponent(
-            page.id(),
+            page.get().id(),
             TestConstants.TEST_COMPONENT_A_TITLE,
             TestConstants.TEST_COMPONENT_A_DESCRIPTION
         );
-        page = resource.statusPage().sync(page);
-        assertTrue(page.components().stream().filter(i -> i.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findAny().isPresent());
+        Page syncPage = resource.statusPage().sync(page.get());
+        assertTrue(syncPage.components().stream().filter(i -> i.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findAny().isPresent());
     }
 
     @Test public void B_testListComponents() {
-        Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
-        List<Component> components = resource.statusPage().components(page);
+        Optional<Page> page = resource.statusPage().getPageByTitle(TEST_PAGE_NAME, true);
+        assertNonEmpty(page);
+        List<Component> components = resource.statusPage().components(page.get());
         assertTrue(components.size() > 0);
         assertTrue(components.stream().filter(i -> i.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findAny().isPresent());
     }
 
     @Test public void C_testGetComponent() {
-        Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
-        assertTrue(page.components().size() > 0);
+        Optional<Page> page = resource.statusPage().getPageByTitle(TEST_PAGE_NAME, true);
+        assertNonEmpty(page);
+        assertTrue(page.get().components().size() > 0);
 
-        Optional<Component> component = page.components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findAny();
+        Optional<Component> component = page.get().components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findAny();
         assertTrue(component.isPresent());
 
-        Optional<Component> loaded = resource.statusPage().getComponent(page.id(), component.get().id(), true);
+        Optional<Component> loaded = resource.statusPage().getComponent(page.get().id(), component.get().id(), true);
         assertTrue(loaded.isPresent());
         assertEquals(TestConstants.TEST_COMPONENT_A_TITLE, loaded.get().name());
         assertEquals(ComponentStatus.OPERATIONAL, loaded.get().status());
     }
 
     @Test public void D_testUpdateComponent() {
-        Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
+        Optional<Page> page = resource.statusPage().getPageByTitle(TEST_PAGE_NAME, true);
+        assertNonEmpty(page);
 
-        Optional<Component> component = page.components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findAny();
+        Optional<Component> component = page.get().components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findAny();
         assertTrue(component.isPresent());
 
-        Optional<Component> loaded = resource.statusPage().getComponent(page.id(), component.get().id(), true);
+        Optional<Component> loaded = resource.statusPage().getComponent(page.get().id(), component.get().id(), true);
         assertTrue(loaded.isPresent());
 
         loaded.get().status(ComponentStatus.DEGRADED);
@@ -73,16 +79,17 @@ public class ComponentTest {
     }
 
     @Test public void E_testDeleteComponent() {
-        Page page = resource.statusPage().getPage(resource.statusPage().pages().get(0).id(), true).get();
+        Optional<Page> page = resource.statusPage().getPageByTitle(TEST_PAGE_NAME, true);
+        assertNonEmpty(page);
 
-        Optional<Component> component = page.components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findAny();
+        Optional<Component> component = page.get().components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findAny();
         assertTrue(component.isPresent());
 
-        Optional<Component> removed = resource.statusPage().deleteComponent(page.id(), component.get().id());
+        Optional<Component> removed = resource.statusPage().deleteComponent(page.get().id(), component.get().id());
         assertTrue(removed.isPresent());
 
-        page = resource.statusPage().sync(page);
-        assertFalse(page.components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findAny().isPresent());
+        Page syncPage = resource.statusPage().sync(page.get());
+        assertFalse(syncPage.components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findAny().isPresent());
     }
 
 }
