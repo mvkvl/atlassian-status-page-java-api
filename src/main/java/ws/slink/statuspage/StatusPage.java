@@ -182,6 +182,20 @@ public class StatusPage {
         ;
     }
 
+    public List<Component> nonGroupComponents(Page page) {
+        return nonGroupComponents(page.id());
+    }
+    public List<Component> nonGroupComponents(String pageId) {
+        return nonGroupComponents(pageId, 0, 0);
+    }
+    private List<Component> nonGroupComponents(String pageId, int pageSize, int pageNum) {
+        return components(pageId, pageSize, pageNum)
+            .stream()
+            .filter(v -> null == v.groupId() || v.groupId().trim().isEmpty())
+            .collect(Collectors.toList())
+        ;
+    }
+
     public List<Incident> incidents(Page page) {
         return incidents(page.id(), null, 0, 0);
     }
