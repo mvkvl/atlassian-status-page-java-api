@@ -131,23 +131,41 @@ public class StatusPage {
             );
     }
 
+
     public List<Component> components(Page page) {
-        return components(page.id(), 0, 0);
+        return components(page.id(), 0, 0, false);
     }
     public List<Component> components(Page page, int pageSize, int pageNum) {
-        return components(page.id(), pageSize, pageNum);
+        return components(page.id(), pageSize, pageNum, false);
     }
     public List<Component> components(String pageId) {
-        return components(pageId, 0, 0);
+        return components(pageId, 0, 0, false);
     }
     public List<Component> components(String pageId, int pageSize, int pageNum) {
-        return new StatusPageQuery(statusPageApi, Component.class)
+        return components(pageId, pageSize, pageNum, false);
+    }
+    public List<Component> components(Page page, boolean noGroups) {
+        return components(page.id(), 0, 0, noGroups);
+    }
+    public List<Component> components(Page page, int pageSize, int pageNum, boolean noGroups) {
+        return components(page.id(), pageSize, pageNum, noGroups);
+    }
+    public List<Component> components(String pageId, boolean noGroups) {
+        return components(pageId, 0, 0, noGroups);
+    }
+    public List<Component> components(String pageId, int pageSize, int pageNum, boolean noGroups) {
+        List<Component> component = new StatusPageQuery(statusPageApi, Component.class)
             .list(
                 "pages/" + pageId + "/components",
                 "no components found for page '" + pageId + "'",
                 pageSize,
                 pageNum
             );
+        if (noGroups) {
+            return component.stream().filter(c -> !c.group()).collect(Collectors.toList());
+        } else {
+            return component;
+        }
     }
 
     public List<Component> groupComponents(Group group) {
