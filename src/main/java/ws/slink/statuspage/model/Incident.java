@@ -68,4 +68,8 @@ public class Incident {
         }
     }
 
+    public boolean isScheduled() {
+        return scheduledFor != null;
+    }
+
 }
