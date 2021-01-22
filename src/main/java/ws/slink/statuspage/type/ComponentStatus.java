@@ -4,23 +4,24 @@ import com.google.gson.annotations.SerializedName;
 
 public enum ComponentStatus {
 
+     @SerializedName("")
+     NONE("", 0),
+
      @SerializedName("operational")
      OPERATIONAL("operational", 1),
 
-     @SerializedName("under_maintenance")
-     MAINTENANCE("under_maintenance", 2),
-
      @SerializedName("degraded_performance")
-     DEGRADED("degraded_performance", 3),
+     DEGRADED("degraded_performance", 2),
 
      @SerializedName("partial_outage")
-     PARTIAL_OUTAGE("partial_outage", 4),
+     PARTIAL_OUTAGE("partial_outage", 3),
 
      @SerializedName("major_outage")
-     MAJOR_OUTAGE("major_outage", 5),
+     MAJOR_OUTAGE("major_outage", 4),
 
-     @SerializedName("")
-     NONE("", 0)
+     @SerializedName("under_maintenance")
+     MAINTENANCE("under_maintenance", 5)
+
     ;
 
     private String value;

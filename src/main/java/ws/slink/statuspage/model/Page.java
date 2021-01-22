@@ -6,6 +6,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -22,7 +23,11 @@ public class Page {
     private List<Component> components = Collections.emptyList();;
     private List<Incident> incidents;
     public List<Component> allComponents() {
-        return Stream.concat(this.components.stream(), groups.stream().flatMap(v -> v.componentObjects().stream())).collect(Collectors.toList());
+        return Stream.concat(this.components.stream(), groups.stream().flatMap(v -> v.componentObjects().stream()))
+            .filter(c -> !c.group())
+            .sorted(Comparator.comparing(Component::name))
+            .collect(Collectors.toList())
+        ;
     }
 
     public static Page of(LinkedTreeMap<String, Object> map) {

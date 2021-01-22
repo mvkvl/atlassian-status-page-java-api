@@ -9,6 +9,7 @@ import ws.slink.statuspage.type.IncidentStatus;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Data
 @Accessors(fluent = true)
@@ -55,7 +56,7 @@ public class Incident {
         if (null == components)
             return Collections.emptyList();
         else
-            return components;
+            return components.stream().sorted(Comparator.comparing(Component::name)).collect(Collectors.toList());
     }
 
     @SerializedName("incident_updates")

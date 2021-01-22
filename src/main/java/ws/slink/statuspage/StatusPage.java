@@ -10,10 +10,7 @@ import ws.slink.statuspage.type.ComponentStatus;
 import ws.slink.statuspage.type.IncidentSeverity;
 import ws.slink.statuspage.type.IncidentStatus;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class StatusPage {
@@ -104,6 +101,16 @@ public class StatusPage {
         syncGroup(group);
         return group;
     }
+//    public Optional<Incident> syncIncident(@NonNull String pageId, @NonNull String incidentId) {
+//        Optional<Page> page = getPage(pageId);
+//        if (page.isPresent()) {
+//            Page syncedPage = sync(page.get());
+//            return syncedPage.incidents().stream().filter(i -> i.id().equals(incidentId)).findAny();
+//        } else {
+//            return Optional.empty();
+//        }
+//    }
+
 
 
     // LIST OBJECTS
@@ -154,7 +161,7 @@ public class StatusPage {
         return components(pageId, 0, 0, noGroups);
     }
     public List<Component> components(String pageId, int pageSize, int pageNum, boolean noGroups) {
-        List<Component> component = new StatusPageQuery(statusPageApi, Component.class)
+        List<Component> components = new StatusPageQuery(statusPageApi, Component.class)
             .list(
                 "pages/" + pageId + "/components",
                 "no components found for page '" + pageId + "'",
@@ -162,9 +169,9 @@ public class StatusPage {
                 pageNum
             );
         if (noGroups) {
-            return component.stream().filter(c -> !c.group()).collect(Collectors.toList());
+            return components.stream().filter(c -> !c.group()).sorted(Comparator.comparing(Component::name)).collect(Collectors.toList());
         } else {
-            return component;
+            return components.stream().sorted(Comparator.comparing(Component::name)).collect(Collectors.toList());
         }
     }
 
