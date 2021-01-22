@@ -14,10 +14,10 @@ public enum IncidentSeverity {
      MAJOR("major", 2),
 
      @SerializedName("critical")
-     CRITICAL("critical", 3),
+     CRITICAL("critical", 3)
 
-     @SerializedName("maintenance")
-     MAINTENANCE("maintenance", 4)
+//     @SerializedName("maintenance")
+//     MAINTENANCE("maintenance", 4)
     ;
 
     private String value;
