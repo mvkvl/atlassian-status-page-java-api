@@ -282,11 +282,12 @@ public class StatusPage {
         return getIncident(pageId, incidentId, false);
     }
     public Optional<Incident> getIncident(String pageId, String incidentId, boolean full) {
-        Optional<Incident> component = new StatusPageQuery(statusPageApi, Incident.class)
+        Optional<Incident> incident = new StatusPageQuery(statusPageApi, Incident.class)
                 .get("pages/" + pageId + "/incidents/" + incidentId, "no incident found for page #" + pageId + " with id " + incidentId);
-//        if (full)
-//            component.ifPresent(this::syncIncident);
-        return component;
+        if (full) {
+            incident.ifPresent(this::syncIncident);
+        }
+        return incident;
     }
 
 
@@ -503,6 +504,9 @@ public class StatusPage {
         group.componentObjects(groupComponents(group));
         group.components(group.componentObjects().stream().map(Component::id).collect(Collectors.toList()));
     }
+    private void syncIncident(@NonNull Incident incident) {
+        getPage(incident.pageId()).ifPresent(page -> incident.page(page));
+    }
 
     private String incidentRequestJson(Incident incident, String body) {
         return incidentRequestJson(
@@ -559,6 +563,7 @@ public class StatusPage {
 */
         Map<String, Object> wrapper = new HashMap<>();
         wrapper.put("incident", map);
+
         return new Gson().toJson(wrapper);
     }
 

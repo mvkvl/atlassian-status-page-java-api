@@ -122,8 +122,14 @@ class StatusPageQuery<T> {
                 return (Optional<T>) Optional.ofNullable(result);
             } else {
                 if (statusPageApi.bridgeErrors()) {
-                    throw new RuntimeException(errorMessage + ": service answered " + response.status().code() + " (" + response.status().message() + ")");
+                    throw new ServiceCallException(errorMessage, response.status().code());
                 }
+            }
+        } catch (ServiceCallException e) {
+            if (statusPageApi.bridgeErrors()) {
+                throw e;
+            } else {
+                e.printStackTrace();
             }
         } catch (JsonSyntaxException e) {
             if (statusPageApi.bridgeErrors()) {

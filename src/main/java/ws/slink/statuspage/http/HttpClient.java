@@ -102,34 +102,55 @@ public class HttpClient {
         HttpsURLConnection con = (HttpsURLConnection)urlObject.openConnection();
         return performRequest(con, method);
     }
-    private HttpResponse performRequest(HttpURLConnection connection, HttpMethod method) throws IOException {
-        connection.setRequestMethod(method.name());
-        connection.setInstanceFollowRedirects(false);
-        headers_.entrySet().stream().forEach(e -> connection.setRequestProperty(e.getKey(), e.getValue()));
-
-        if (method != HttpMethod.GET) {
-            connection.setDoOutput(true);
-            try(OutputStream os = connection.getOutputStream()) {
-                if (null != body) {
-                    byte[] input = getBodyAsBytes();
-                    os.write(input, 0, input.length);
+    private HttpResponse performRequest(HttpURLConnection connection, HttpMethod method) {
+        HttpStatus responseStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+        String    responseMessage = "";
+        String    responseBody    = "";
+        try {
+            connection.setRequestMethod(method.name());
+            connection.setInstanceFollowRedirects(false);
+            headers_.entrySet().stream().forEach(e -> connection.setRequestProperty(e.getKey(), e.getValue()));
+            if (method != HttpMethod.GET) {
+                connection.setDoOutput(true);
+                try(OutputStream os = connection.getOutputStream()) {
+                    if (null != body) {
+                        byte[] input = getBodyAsBytes();
+                        os.write(input, 0, input.length);
+                    }
                 }
+            }
+            responseStatus  = HttpStatus.of(connection.getResponseCode());
+            responseMessage = connection.getResponseMessage();
+            // connection.getErrorStream()
+            try(BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(), "utf-8"))) {
+                responseBody = readResponse(br);
+            }
+        } catch (IOException e) {
+
+//            System.out.println("-----> io exception: " + e.getMessage() + " " + ((null != e.getCause()) ? e.getCause().getMessage() : ""));
+//            System.out.println("  ---> base        : " + e.getClass().getSimpleName() + " " + e.getMessage());
+            if (null != e.getCause()) {
+//                System.out.println("   ---> cause 1    : " + e.getCause().getClass().getSimpleName() + " " + e.getCause().getMessage());
+                if (null != e.getCause().getCause()) {
+//                    System.out.println("    ---> cause 2   : " + e.getCause().getCause().getClass().getSimpleName() + " " + e.getCause().getCause().getMessage());
+                    if (null != e.getCause().getCause().getCause()) {
+//                        System.out.println("     ---> cause 3  : " + e.getCause().getCause().getCause().getClass().getSimpleName() + " " + e.getCause().getCause().getCause().getMessage());
+                    }
+                }
+            }
+            responseMessage = e.getMessage();
+            try {
+                responseStatus  = HttpStatus.of(connection.getResponseCode());
+//                System.out.println("-----> status code : " + responseStatus);
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+//                System.out.println("-----> status code : " + responseStatus + "(none)");
             }
         }
 
-        HttpResponse response = new HttpResponse()
-            .status(HttpStatus.of(connection.getResponseCode()))
-            .message(connection.getResponseMessage())
-        ;
+//        System.out.println("---> performRequest: " + responseStatus + " " + responseMessage + " " + responseBody);
 
-        // connection.getErrorStream()
-
-        try(BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(), "utf-8"))) {
-            response.body(readResponse(br));
-        }
-
-//        System.out.println("--- performRequest: " + method + " " + url + " -> " + response);
-        return response;
+        return new HttpResponse().status(responseStatus).message(responseMessage).body(responseBody);
     }
 
     private String readResponse(BufferedReader br) throws IOException {

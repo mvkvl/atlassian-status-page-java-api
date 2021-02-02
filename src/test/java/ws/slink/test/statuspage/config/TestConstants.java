@@ -5,6 +5,7 @@ import org.junit.rules.ExternalResource;
 
 public class TestConstants extends ExternalResource {
 
+    public static final String TEST_INCIDENT_TITLE_PREFIX = "test incident: ";
     public static final String TEST_PAGE_NAME = "devTest";
     public static final String TEST_COMPONENT_A_TITLE = "component A";
     public static final String TEST_COMPONENT_A_DESCRIPTION = "component A description";

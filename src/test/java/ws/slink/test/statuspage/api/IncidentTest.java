@@ -123,7 +123,7 @@ public class IncidentTest {
         componentB.get().status(ComponentStatus.MAJOR_OUTAGE);
 
         Map<String, Object> jira = new HashMap<>();
-        jira.put("issue_id", "<TEST ID>");
+        jira.put("issue_id", "TEST ID");
         Map<String, Object> meta = new HashMap<>();
         meta.put("jira", jira);
 
@@ -327,6 +327,163 @@ public class IncidentTest {
 
         syncPage = resource.statusPage().sync(syncPage);
         assertEmpty(syncPage.incidents());
+    }
+
+
+    @Test public void H_testIncidentLifecycleWithComponents() {
+        Optional<Page> page = resource.statusPage().getPageByTitle(TEST_PAGE_NAME, true);
+        assertNonEmpty(page);
+
+        Optional<Component> componentA = resource.statusPage().createComponent(
+                page.get().id(),
+                TestConstants.TEST_COMPONENT_A_TITLE,
+                TestConstants.TEST_COMPONENT_A_DESCRIPTION,
+                true
+        );
+        assertNonEmpty(componentA);
+        componentA.get().status(ComponentStatus.DEGRADED);
+
+        Optional<Component> componentB = resource.statusPage().createComponent(
+                page.get().id(),
+                TestConstants.TEST_COMPONENT_B_TITLE,
+                TestConstants.TEST_COMPONENT_B_DESCRIPTION,
+                true
+        );
+        assertNonEmpty(componentB);
+        componentB.get().status(ComponentStatus.PARTIAL_OUTAGE);
+
+        Map<String, Object> jira = new HashMap<>();
+        jira.put("issue_id", "TEST ID");
+        Map<String, Object> meta = new HashMap<>();
+        meta.put("jira", jira);
+
+        resource.statusPage().createIncident(
+            page.get().id(),
+            resource.getIncidentTitle(),
+            "something's happened... dealing with it",
+            IncidentStatus.INVESTIGATING,
+            IncidentSeverity.MAJOR,
+            meta,
+            Arrays.asList(componentA.get())
+        );//.ifPresentOrElse(System.out::println, () -> System.out.println("could not create incident"));
+
+        Page syncPage = resource.statusPage().sync(page.get());
+        Optional<Incident> createdIncident = syncPage.incidents().stream().filter(i -> i.name().equals(resource.getIncidentTitle())).findAny();
+        assertNonEmpty(createdIncident);
+        assertNonEmpty(createdIncident.get().components().stream().filter(c -> c.name().equals(componentA.get().name())).findAny());
+        assertEmpty(createdIncident.get().components().stream().filter(c -> c.name().equals(componentB.get().name())).findAny());
+
+        createdIncident.get().components(Arrays.asList(componentB.get()));
+        Optional<Incident> updatedIncident = resource.statusPage().updateIncident(createdIncident.get());
+        assertNonEmpty(updatedIncident);
+        assertEmpty(updatedIncident.get().components().stream().filter(c -> c.name().equals(componentA.get().name())).findAny());
+        assertNonEmpty(updatedIncident.get().components().stream().filter(c -> c.name().equals(componentB.get().name())).findAny());
+
+        updatedIncident.get().components().get(0).status(ComponentStatus.MAJOR_OUTAGE);
+        updatedIncident = resource.statusPage().updateIncident(updatedIncident.get(), "component B degraded to 'major_outage'");
+        assertNonEmpty(updatedIncident);
+        assertNonEmpty(updatedIncident.get().components().stream().filter(c -> c.name().equals(componentB.get().name())).findAny());
+        assertEquals(ComponentStatus.MAJOR_OUTAGE, updatedIncident.get().components().get(0).status());
+
+//        resource.statusPage().deleteComponent(componentA.get());
+//        resource.statusPage().deleteComponent(componentB.get());
+//        resource.statusPage().deleteIncident(updatedIncident.get());
+
+//        System.err.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ WAITING ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+//        try {
+//            Thread.sleep(60000);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+
+//        incident.get().impact(IncidentSeverity.MINOR);
+//        incident.get().status(IncidentStatus.IDENTIFIED);
+//        incident.get().components().add(componentA.get());
+//        incident.get().components().add(componentB.get());
+//        Optional<Incident> updated = resource.statusPage().updateIncident(incident.get());
+//        assertNonEmpty(updated);
+//        assertEquals(IncidentSeverity.MINOR, updated.get().impact());
+//        assertEquals(IncidentStatus.IDENTIFIED, updated.get().status());
+
+//        syncPage = resource.statusPage().sync(syncPage);
+//        Optional<Incident> reloaded = resource.statusPage().getIncident(syncPage.id(), syncPage.incidents().get(0).id());
+
+//        assertTrue(reloaded.isPresent());
+//        assertEquals(resource.getIncidentTitle(), reloaded.get().name());
+//        assertEquals(IncidentSeverity.MINOR, reloaded.get().impact());
+//        assertEquals(IncidentStatus.IDENTIFIED, reloaded.get().status());
+//        assertNonEmpty(reloaded.get().components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findAny());
+//        assertNonEmpty(reloaded.get().components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_B_TITLE)).findAny());
+//        assertEquals(ComponentStatus.DEGRADED, reloaded.get().components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findFirst().get().status());
+//        assertEquals(ComponentStatus.MAJOR_OUTAGE, reloaded.get().components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_B_TITLE)).findFirst().get().status());
+
+//        System.err.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ WAITING ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+//        try {
+//            Thread.sleep(60000);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+
+//        syncPage = resource.statusPage().sync(syncPage);
+//        incident = resource.statusPage().getIncident(syncPage.id(), syncPage.incidents().get(0).id());
+//        assertNonEmpty(incident);
+//        incident.get().components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findFirst().get().status(ComponentStatus.OPERATIONAL);
+//        incident.get().components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_B_TITLE)).findFirst().get().status(ComponentStatus.MAINTENANCE);
+//        incident.get().status(IncidentStatus.MONITORING);
+//        updated = resource.statusPage().updateIncident(incident.get());
+//        assertNonEmpty(updated);
+//        assertEquals(IncidentSeverity.MINOR, updated.get().impact());
+//        assertEquals(IncidentStatus.MONITORING, updated.get().status());
+//        assertNonEmpty(updated.get().components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findAny());
+//        assertNonEmpty(updated.get().components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_B_TITLE)).findAny());
+//        assertEquals(ComponentStatus.OPERATIONAL, updated.get().components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findFirst().get().status());
+//        assertEquals(ComponentStatus.MAINTENANCE, updated.get().components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_B_TITLE)).findFirst().get().status());
+
+//        System.err.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ WAITING ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+//        try {
+//            Thread.sleep(60000);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+
+//        syncPage = resource.statusPage().sync(syncPage);
+//        incident = resource.statusPage().getIncident(syncPage.id(), syncPage.incidents().get(0).id());
+//        assertNonEmpty(incident);
+//        incident.get().components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findFirst().get().status(ComponentStatus.OPERATIONAL);
+//        incident.get().components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_B_TITLE)).findFirst().get().status(ComponentStatus.OPERATIONAL);
+//        incident.get().status(IncidentStatus.RESOLVED);
+//        updated = resource.statusPage().updateIncident(incident.get());
+//        assertNonEmpty(updated);
+//        assertEquals(IncidentStatus.RESOLVED, updated.get().status());
+//        assertNonEmpty(updated.get().components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findAny());
+//        assertNonEmpty(updated.get().components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_B_TITLE)).findAny());
+//        assertEquals(ComponentStatus.OPERATIONAL, updated.get().components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findFirst().get().status());
+//        assertEquals(ComponentStatus.OPERATIONAL, updated.get().components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_B_TITLE)).findFirst().get().status());
+
+//        System.err.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ WAITING ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+//        try {
+//            Thread.sleep(60000);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+
+//        componentA = syncPage.components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findAny();
+//        assertNonEmpty(componentA);
+//        resource.statusPage().deleteComponent(componentA.get());
+
+//        componentB = syncPage.components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_B_TITLE)).findAny();
+//        assertNonEmpty(componentB);
+//        resource.statusPage().deleteComponent(componentB.get());
+
+//        syncPage = resource.statusPage().sync(syncPage);
+//        assertEmpty(syncPage.components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_A_TITLE)).findAny());
+//        assertEmpty(syncPage.components().stream().filter(c -> c.name().equals(TestConstants.TEST_COMPONENT_B_TITLE)).findAny());
+
+//        Optional<Incident> removed = resource.statusPage().deleteIncident(syncPage.id(), incident.get().id());
+//        assertTrue(removed.isPresent());
+
+//        syncPage = resource.statusPage().sync(syncPage);
+//        assertEmpty(syncPage.incidents());
     }
 
 }

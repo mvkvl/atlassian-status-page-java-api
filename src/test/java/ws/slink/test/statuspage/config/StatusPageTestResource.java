@@ -3,8 +3,12 @@ package ws.slink.test.statuspage.config;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.rules.ExternalResource;
 import ws.slink.statuspage.StatusPage;
+import ws.slink.statuspage.model.Page;
 import ws.slink.statuspage.type.ComponentStatus;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 public class StatusPageTestResource extends ExternalResource {
@@ -16,7 +20,7 @@ public class StatusPageTestResource extends ExternalResource {
     private String incidentTitle;
 
     public StatusPageTestResource() {
-        this.incidentTitle = "test incident: " + RandomStringUtils.randomAlphanumeric(10);
+        this.incidentTitle = TestConstants.TEST_INCIDENT_TITLE_PREFIX + RandomStringUtils.randomAlphanumeric(10);
     }
 
     public static StatusPageTestResource get() {
@@ -44,7 +48,20 @@ public class StatusPageTestResource extends ExternalResource {
                 .rateLimitDelay(1000)
                 .build()
             ;
+            deleteTestComponentsAndIncidents();
         }
+    }
+
+    private void deleteTestComponentsAndIncidents() {
+        statusPage.getPageByTitle(TestConstants.TEST_PAGE_NAME, true).ifPresent(page -> {
+            page.incidents()
+                .stream()
+                .filter(i -> i.name().startsWith(TestConstants.TEST_INCIDENT_TITLE_PREFIX))
+                .forEach(statusPage::deleteIncident)
+            ;
+            List<String> testComponentNames = Arrays.asList(TestConstants.TEST_COMPONENT_A_TITLE, TestConstants.TEST_COMPONENT_B_TITLE, TestConstants.TEST_COMPONENT_C_TITLE);
+            page.components().stream().filter(c -> testComponentNames.contains(c.name())).forEach(statusPage::deleteComponent);
+        });
     }
 
     @Override
