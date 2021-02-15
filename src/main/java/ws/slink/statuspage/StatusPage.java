@@ -547,7 +547,7 @@ public class StatusPage {
             map.put("impact_override", IncidentSeverity.NONE.value());
         if (null != meta && !meta.isEmpty())
             map.put("metadata", meta);
-        if (null != components && !components.isEmpty()) {
+        if (null != components /*&& !components.isEmpty()*/) {
             map.put("component_ids", components.stream().map(Component::id).collect(Collectors.toList()));
             map.put("components", components.stream().collect(Collectors.toMap(Component::id, c -> c.status().value())));
         }
