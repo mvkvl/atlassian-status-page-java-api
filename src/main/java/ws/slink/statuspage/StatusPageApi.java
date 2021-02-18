@@ -7,11 +7,13 @@ import ws.slink.statuspage.http.HttpMethod;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 class StatusPageApi {
 
+    private final Random random = new Random();
     private final String apiToken;
 
     // if API calls should be rate limited
@@ -167,7 +169,7 @@ class StatusPageApi {
     }
     synchronized private void delay() {
         while (callTimestamp.get() > Instant.now().toEpochMilli() - rateLimitDelay.get()) {
-            try { Thread.sleep(50); } catch (InterruptedException e) { }
+            try { Thread.sleep(50 + random.nextInt(50)); } catch (InterruptedException e) { }
         }
         callTimestamp.set(Instant.now().toEpochMilli());
     }
